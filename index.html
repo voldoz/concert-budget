@@ -120,8 +120,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Bump APP_VERSION and write APP_NOTES on every release: open copies compare it to show the update banner.
-const APP_VERSION = '2026.11.23-8';
-const APP_NOTES = 'شعار للتطبيق عند حفظه على الشاشة الرئيسية';
+const APP_VERSION = '2026.11.23-9';
+const APP_NOTES = 'قائمة مسارح قابلة للتعديل مع تكلفة الإيجار تُضاف تلقائياً عند الاختيار';
 const SB_URL = 'https://awkkcmyeaovcuiphlzye.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3a2tjbXllYW92Y3VpcGhsenllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MDg4NTAsImV4cCI6MjExMDk4NDg1MH0.1rM1XFyAIcQZ4iCj7K7hdUPlsVyyIcmPma7G1pdhTK8';
 const sb = createClient(SB_URL, SB_KEY);
@@ -311,7 +311,7 @@ const SCREENS = [
   ['concerts', 'الحفلات والأرشيف', () => true, false],
   ['overview', 'نظرة عامة', () => isMgr(), true],
   ['venue', 'المسرح والمقاعد', () => can('venue'), true],
-  ['library', 'مكتبة المسارح', () => can('venue'), false],
+  ['library', 'قائمة المسارح', () => can('venue'), false],
   ['costs', 'التكاليف', () => can('fixed') || can('logistics'), true],
   ['revenue', 'الرعاة والإيرادات', () => can('revenue'), true],
   ['tickets', 'التذاكر والتسعير', () => can('tickets'), true],
@@ -359,7 +359,7 @@ function render() {
   root.querySelector('.tabbar .on')?.scrollIntoView?.({ inline: 'center', block: 'nearest' });
   renderLayer();
 }
-const TAB_LABEL = { concerts: 'الحفلات', overview: 'نظرة عامة', venue: 'المسرح', library: 'المكتبة', costs: 'التكاليف', revenue: 'الرعاة', tickets: 'التذاكر', scenarios: 'السيناريوهات', team: 'الفريق' };
+const TAB_LABEL = { concerts: 'الحفلات', overview: 'نظرة عامة', venue: 'المسرح', library: 'المسارح', costs: 'التكاليف', revenue: 'الرعاة', tickets: 'التذاكر', scenarios: 'السيناريوهات', team: 'الفريق' };
 const ICONS = {
   concerts: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>',
   overview: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
@@ -502,12 +502,13 @@ function renderVenue() {
     <td><input class="fld w-num num" type="number" min="0" aria-label="محجوب" value="${N(z.blocked)}" data-chg="zone" data-id="${z.id}" data-f="blocked"></td>
     <td class="num" style="font-weight:700">${int(zSeats(z))}</td>
     <td><button class="btn btn-danger btn-sm" data-act="del-zone" data-id="${z.id}">حذف</button></td></tr>`).join('');
-  const up = S.ui.upload;
-  const showUploader = up && up.target === 'concert';
-  return `<section class="card row between" style="background:#FAF8FE;border-color:#CFC4EA;align-items:flex-end">
-      <div class="field" style="flex:1 1 320px"><label class="lbl" for="v-pick">اختر المسرح من المكتبة (${S.lib.length} تصاميم)</label>
-      <select id="v-pick" class="fld w-full" data-chg="pick-venue"><option value="">— تصميم مخصص لهذه الحفلة —</option>${S.lib.map(v => `<option value="${v.id}" ${v.id === c.venue_id ? 'selected' : ''}>${esc(v.name)}</option>`).join('')}</select></div>
-      <div class="row"><button class="btn btn-ghost" data-act="save-to-lib">حفظ التصميم الحالي في المكتبة</button><button class="btn btn-ghost" data-act="go" data-id="library">إدارة المكتبة</button></div>
+  const curV = S.lib.find(v => v.id === c.venue_id);
+  return `<section class="card stack" style="background:#FAF8FE;border-color:#CFC4EA">
+      <div class="row between" style="align-items:flex-end">
+      <div class="field" style="flex:1 1 320px"><label class="lbl" for="v-pick">اختر المسرح من القائمة (${S.lib.length})</label>
+      <select id="v-pick" class="fld w-full" data-chg="pick-venue"><option value="">— مسرح مخصص لهذه الحفلة —</option>${S.lib.map(v => `<option value="${v.id}" ${v.id === c.venue_id ? 'selected' : ''}>${esc(v.name)}${N(v.cost) > 0 ? ' · إيجار ' + fmt(v.cost) : ''}</option>`).join('')}</select></div>
+      <div class="row"><button class="btn btn-ghost" data-act="save-to-lib">حفظ كمسرح جديد في القائمة</button><button class="btn btn-ghost" data-act="go" data-id="library">قائمة المسارح</button></div></div>
+      ${curV && N(curV.cost) > 0 ? `<div class="note info">إيجار هذا المسرح ${fmt(curV.cost)} أُضيف تلقائياً إلى التكاليف الثابتة، وتقدر تعدّله من شاشة التكاليف.</div>` : '<div class="muted">عند اختيار مسرح تُحمَّل خاناته، ويُضاف إيجاره تلقائياً إلى التكاليف الثابتة.</div>'}
     </section>
     <section class="card grid" style="align-items:end">
       <div class="field"><label class="lbl" for="v-name">اسم المسرح / القاعة</label><input id="v-name" class="fld w-full" value="${esc(c.venue_name)}" data-chg="concert" data-f="venue_name"></div>
@@ -515,8 +516,7 @@ function renderVenue() {
       <div class="stack" style="gap:4px"><span class="lbl">إجمالي المقاعد</span><span class="num big">${int(total)}</span><span class="muted">${d.zones.length} خانات · ${int(blocked)} محجوب</span></div>
       <div>${N(c.capacity) > 0 ? `<div class="note ${over ? 'err' : 'ok'}" role="status">${over ? 'تجاوز السعة المسموحة بـ ' + int(total - c.capacity) + ' مقعد' : 'ضمن السعة المسموحة · متبقٍ ' + int(c.capacity - total) + ' مقعد'}</div>` : '<div class="muted">أدخل السعة المسموحة لتفعيل التنبيه</div>'}</div>
     </section>
-    ${showUploader ? renderUploader() : `<section class="card row between"><div><h2 style="font-size:17px">رفع مخطط المسرح</h2><div class="muted">ارفع صورة أو PDF للمخطط ليُحفظ مع الحفلة، وأدخل الخانات وأنت تشاهده.</div></div><button class="btn btn-primary" data-act="start-upload" data-id="concert">رفع مخطط</button></section>`}
-    <section class="card stack"><div class="row between"><div class="row"><h2 style="font-size:17px">مخطط القاعة</h2>${c.chart_path ? `<button class="btn btn-ghost btn-sm" data-act="view-concert-chart">عرض المخطط الأصلي</button>` : ''}</div><div class="row">${legend}</div></div>${renderMap(d.zones, z => tierById(z.tier_id))}</section>
+    <section class="card stack"><div class="row">${legend}</div></section>
     <section class="card stack"><div class="row between"><div><h2 style="font-size:17px">تقسيم الخانات</h2><div class="muted">المقاعد = الصفوف × المقاعد في الصف − المحجوب. التعديلات تنعكس على التذاكر والأسعار مباشرة.</div></div><button class="btn btn-primary" data-act="add-zone">+ إضافة خانة</button></div>
     <div class="tblwrap"><table class="tbl" style="min-width:960px"><thead><tr><th>اسم الخانة</th><th>الموقع</th><th>فئة التذكرة</th><th>الصفوف</th><th>مقاعد/صف</th><th>محجوب</th><th>المقاعد</th><th></th></tr></thead><tbody>${zrows || '<tr><td colspan="8" class="muted">لا توجد خانات.</td></tr>'}</tbody></table></div></section>`;
 }
@@ -559,25 +559,42 @@ function renderUploader() {
 
 /* ================= library ================= */
 function renderLibrary() {
-  const up = S.ui.upload;
+  const tierNames = [...new Set([...Object.keys(TIER_PRESETS), ...S.lib.flatMap(v => (v.zones || []).map(z => z.tier)).filter(Boolean)])];
   const cards = S.lib.map(v => {
     const zones = Array.isArray(v.zones) ? v.zones : [];
     const total = zones.reduce((a, z) => a + zSeats(z), 0);
-    const colorOf = (z) => ({ color: (S.d?.tiers.find(t => t.name === z.tier)?.color) || TIER_PRESETS[z.tier]?.[1] || '#E8E5DE' });
-    const mini = ['front', 'middle', 'back'].map(p => { const zs = zones.filter(z => z.position === p); return zs.length ? `<div style="display:flex;gap:4px">${zs.map(z => `<div style="flex:${Math.max(1, zSeats(z))} 1 0;min-width:14px;height:22px;border-radius:4px;background:${esc(colorOf(z).color)};border:1px solid rgba(0,0,0,.08)"></div>`).join('')}</div>` : ''; }).join('');
     const isCur = S.d && S.d.concert.venue_id === v.id;
-    return `<div class="card stack" style="gap:12px;${isCur ? 'border-color:#5B3FA0;box-shadow:0 0 0 1px #5B3FA0' : ''}">
-      <div style="background:#FAF9F6;border:1px solid #EFECE5;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px"><div style="background:#1C1830;height:10px;border-radius:4px;margin:0 18%"></div>${mini || '<div class="muted" style="text-align:center">بدون خانات</div>'}</div>
-      <div class="field"><span class="lbl">اسم التصميم</span><input class="fld w-full" style="font-weight:600" aria-label="اسم التصميم" value="${esc(v.name)}" data-chg="lib-name" data-id="${v.id}"></div>
-      <div class="row muted" style="gap:14px"><span><b class="num" style="color:#1B1A22">${int(total)}</b> مقعد</span><span><b class="num" style="color:#1B1A22">${zones.length}</b> خانات</span><span>السعة <b class="num" style="color:#1B1A22">${int(v.capacity)}</b></span></div>
-      <div class="row">${isCur ? '<span class="chip" style="background:#EEE9F8;color:#3F2A75">مستخدم في الحفلة الحالية</span>' : S.d ? `<button class="btn btn-primary btn-sm" data-act="use-venue" data-id="${v.id}">استخدام للحفلة الحالية</button>` : ''}
-      ${v.chart_path ? `<button class="btn btn-ghost btn-sm" data-act="view-lib-chart" data-id="${v.id}">عرض المخطط</button>` : '<span class="muted" style="font-size:12px">بدون صورة مخطط</span>'}
-      <button class="btn btn-danger btn-sm" data-act="del-venue" data-id="${v.id}" style="margin-right:auto">حذف</button></div></div>`;
+    const open = S.ui.libOpen === v.id;
+    const byTier = {};
+    zones.forEach(z => { byTier[z.tier || '—'] = (byTier[z.tier || '—'] || 0) + zSeats(z); });
+    const tierSummary = Object.entries(byTier).map(([t, n]) => `<span class="chip" style="background:${esc(TIER_PRESETS[t]?.[1] || '#E8E5DE')};color:${textOn(TIER_PRESETS[t]?.[1] || '#E8E5DE')}">${esc(t)} · ${int(n)}</span>`).join(' ');
+    const zrows = zones.map((z, i) => `<tr>
+      <td><input class="fld w-md" aria-label="اسم الخانة" value="${esc(z.name)}" data-chg="lz" data-vid="${v.id}" data-i="${i}" data-f="name"></td>
+      <td><select class="fld w-md" aria-label="الموقع" data-chg="lz" data-vid="${v.id}" data-i="${i}" data-f="position">${Object.entries(POS).map(([k, l]) => `<option value="${k}" ${k === z.position ? 'selected' : ''}>${l}</option>`).join('')}</select></td>
+      <td><input class="fld w-sm" list="tier-names" aria-label="التصنيف" value="${esc(z.tier)}" data-chg="lz" data-vid="${v.id}" data-i="${i}" data-f="tier"></td>
+      <td><input class="fld w-num num" type="number" min="0" aria-label="الصفوف" value="${N(z.rows)}" data-chg="lz" data-vid="${v.id}" data-i="${i}" data-f="rows"></td>
+      <td><input class="fld w-num num" type="number" min="0" aria-label="مقاعد في الصف" value="${N(z.seats_per_row)}" data-chg="lz" data-vid="${v.id}" data-i="${i}" data-f="seats_per_row"></td>
+      <td><input class="fld w-num num" type="number" min="0" aria-label="محجوب" value="${N(z.blocked)}" data-chg="lz" data-vid="${v.id}" data-i="${i}" data-f="blocked"></td>
+      <td class="num" style="font-weight:700">${int(zSeats(z))}</td>
+      <td><button class="btn btn-danger btn-sm" data-act="lz-del" data-id="${v.id}" data-i="${i}">حذف</button></td></tr>`).join('');
+    return `<div class="card stack" style="gap:14px;${isCur ? 'border-color:#5B3FA0;box-shadow:0 0 0 1px #5B3FA0' : ''}">
+      <div class="grid" style="align-items:end">
+        <div class="field"><label class="lbl" for="vn-${v.id}">اسم المسرح</label><input id="vn-${v.id}" class="fld w-full" style="font-weight:600" value="${esc(v.name)}" data-chg="lib" data-id="${v.id}" data-f="name"></div>
+        <div class="field"><label class="lbl" for="vc-${v.id}">تكلفة الإيجار (د.ك)</label><input id="vc-${v.id}" class="fld w-full num" type="number" min="0" step="any" value="${N(v.cost)}" data-chg="lib" data-id="${v.id}" data-f="cost"></div>
+        <div class="field"><label class="lbl" for="vk-${v.id}">السعة المسموحة</label><input id="vk-${v.id}" class="fld w-full num" type="number" min="0" value="${N(v.capacity)}" data-chg="lib" data-id="${v.id}" data-f="capacity"></div>
+      </div>
+      <div class="row" style="gap:14px"><span><b class="num big" style="font-size:22px">${int(total)}</b> <span class="muted">مقعد</span></span><span class="muted">${zones.length} خانات · ${Object.keys(byTier).length} تصنيفات</span></div>
+      ${tierSummary ? `<div class="row" style="gap:6px">${tierSummary}</div>` : ''}
+      ${open ? `<div class="tblwrap"><table class="tbl" style="min-width:960px"><thead><tr><th>الخانة</th><th>الموقع</th><th>التصنيف</th><th>الصفوف</th><th>مقاعد/صف</th><th>محجوب</th><th>المقاعد</th><th></th></tr></thead><tbody>${zrows || '<tr><td colspan="8" class="muted">لا توجد خانات.</td></tr>'}</tbody></table></div>
+        <div class="row"><button class="btn btn-ghost btn-sm" data-act="lz-add" data-id="${v.id}">+ إضافة خانة</button><span class="muted">التعديلات تُحفظ تلقائياً. الحفلات التي اختارت هذا المسرح سابقاً لا تتغير.</span></div>` : ''}
+      <div class="row">${isCur ? '<span class="chip" style="background:#EEE9F8;color:#3F2A75">مستخدم في الحفلة الحالية</span>' : S.d ? `<button class="btn btn-primary btn-sm" data-act="use-venue" data-id="${v.id}">اختيار للحفلة الحالية</button>` : ''}
+        <button class="btn btn-ghost btn-sm" data-act="lib-toggle" data-id="${v.id}">${open ? 'إغلاق الخانات' : 'تعديل الخانات'}</button>
+        <button class="btn btn-danger btn-sm" data-act="del-venue" data-id="${v.id}" style="margin-right:auto">حذف</button></div></div>`;
   }).join('');
-  return `<div class="row between"><div><h2 style="font-size:20px">مكتبة المسارح</h2><div class="muted">تصاميم المسارح المحفوظة. اختر تصميماً لتُحمَّل بياناته كاملة على الحفلة المفتوحة.</div></div>
-    ${up && up.target === 'library' ? '' : '<button class="btn btn-primary" data-act="start-upload" data-id="library">+ إضافة تصميم مسرح</button>'}</div>
-    ${up && up.target === 'library' ? renderUploader() : ''}
-    ${S.lib.length ? `<div class="grid-wide">${cards}</div>` : '<div class="card muted">المكتبة فارغة. أضف أول تصميم مسرح.</div>'}`;
+  return `<datalist id="tier-names">${tierNames.map(n => `<option value="${esc(n)}">`).join('')}</datalist>
+    <div class="row between"><div><h2 style="font-size:20px">قائمة المسارح</h2><div class="muted">لكل مسرح خاناته وتصنيفاته وتكلفة إيجاره. عند اختياره لحفلة تُحمَّل خاناته ويُضاف إيجاره إلى التكاليف.</div></div>
+    <button class="btn btn-primary" data-act="lib-new">+ إضافة مسرح</button></div>
+    ${S.lib.length ? `<div class="stack">${cards}</div>` : '<div class="card muted">القائمة فارغة. أضف أول مسرح.</div>'}`;
 }
 
 /* ================= costs ================= */
@@ -591,7 +608,7 @@ function renderCosts() {
     const k = toK(x.amount, x.currency, c.usd_rate);
     const cov = coverOf(x.id); const covK = Math.min(k, cov.reduce((a, s) => a + toK(s.amount, s.currency, c.usd_rate), 0));
     return `<tr>
-      <td><input class="fld w-md" aria-label="البند" value="${esc(x.name)}" data-chg="cost" data-id="${x.id}" data-f="name"></td>
+      <td><input class="fld w-md" aria-label="البند" value="${esc(x.name)}" data-chg="cost" data-id="${x.id}" data-f="name">${x.source === 'venue' ? '<div><span class="chip" style="background:#EEE9F8;color:#3F2A75;margin-top:4px">من اختيار المسرح</span></div>' : ''}</td>
       <td><div class="row" style="gap:6px;flex-wrap:nowrap"><input class="fld w-sm num" type="number" min="0" step="any" aria-label="المبلغ" value="${N(x.amount)}" data-chg="cost" data-id="${x.id}" data-f="amount">
         <select class="fld" style="width:84px" aria-label="العملة" data-chg="cost" data-id="${x.id}" data-f="currency"><option value="KWD" ${x.currency === 'KWD' ? 'selected' : ''}>د.ك</option><option value="USD" ${x.currency === 'USD' ? 'selected' : ''}>$</option></select></div></td>
       <td class="num" style="font-weight:600">${fmt(k - covK)}${covK > 0 ? `<div style="font-size:12px;font-weight:500;color:#1E5A55">مغطى برعاية: ${fmt(covK)} · ${cov.map(s => esc(s.name)).join('، ')}</div>` : ''}</td>
@@ -926,6 +943,19 @@ async function replaceZones(list) {
   const map = await ensureTierIds([...new Set(list.map(z => z.tier).filter(Boolean))]);
   await q(sb.from('concert_zones').delete().eq('concert_id', S.cid));
   if (list.length) await q(sb.from('concert_zones').insert(list.map((z, i) => ({ concert_id: S.cid, name: z.name || 'خانة', position: z.position || 'middle', tier_id: map[z.tier] || null, rows: N(z.rows), seats_per_row: N(z.seats_per_row), blocked: N(z.blocked), sort: i + 1 }))));
+  // drop ticket tiers that now have no seats and no sponsor tickets (e.g. the four default tiers)
+  if (can('tickets')) {
+    try {
+      const used = new Set(Object.entries(map).filter(([n]) => list.some(z => z.tier === n)).map(([, id]) => id));
+      const tiers = await q(sb.from('ticket_tiers').select('id').eq('concert_id', S.cid));
+      const unused = tiers.map(t => t.id).filter(id => !used.has(id));
+      if (unused.length) {
+        const comps = await q(sb.from('sponsor_comps').select('tier_id').in('tier_id', unused));
+        const drop = unused.filter(id => !comps.some(c => c.tier_id === id));
+        if (drop.length) await q(sb.from('ticket_tiers').delete().in('id', drop));
+      }
+    } catch (e) { console.warn(e); }
+  }
 }
 async function useVenue(vid) {
   const v = S.lib.find(x => x.id === vid); if (!v) return;
@@ -937,12 +967,25 @@ async function useVenue(vid) {
 A['use-venue'] = (el) => run(async () => { if (await useVenue(el.dataset.id) === false) return; S.screen = 'venue'; await refresh(); toast('تم تحميل المسرح'); });
 A['save-to-lib'] = () => run(async () => {
   const c = S.d.concert;
-  const name = prompt('اسم التصميم في المكتبة:', (c.venue_name || 'تصميم مسرح') + (c.venue_id ? ' (معدّل)' : ''));
+  const name = prompt('اسم المسرح في القائمة:', (c.venue_name || 'مسرح') + (c.venue_id ? ' (معدّل)' : ''));
   if (!name) return;
+  const cost = N(S.lib.find(v => v.id === c.venue_id)?.cost);
   const zones = S.d.zones.map(z => ({ name: z.name, position: z.position, tier: tierById(z.tier_id)?.name || '', rows: N(z.rows), seats_per_row: N(z.seats_per_row), blocked: N(z.blocked) }));
-  const v = await q(sb.from('venues').insert({ name, capacity: N(c.capacity), chart_path: c.chart_path, chart_name: c.chart_name, zones }).select().single());
-  await q(sb.from('concerts').update({ venue_id: v.id }).eq('id', S.cid));
-  await loadLib(); await refresh(); toast('تم الحفظ في المكتبة');
+  await q(sb.from('venues').insert({ name, capacity: N(c.capacity), cost, zones }));
+  await loadLib(); renderKeep(); toast('تم الحفظ في قائمة المسارح');
+});
+A['lib-new'] = () => run(async () => {
+  const v = await q(sb.from('venues').insert({ name: 'مسرح جديد', capacity: 0, cost: 0, zones: [{ name: 'خانة 1', position: 'front', tier: 'VIP', rows: 5, seats_per_row: 20, blocked: 0 }] }).select().single());
+  await loadLib(); S.ui.libOpen = v.id; render(); toast('أُضيف مسرح جديد، عدّل بياناته');
+});
+A['lib-toggle'] = (el) => { S.ui.libOpen = S.ui.libOpen === el.dataset.id ? null : el.dataset.id; renderKeep(); };
+A['lz-add'] = (el) => run(async () => {
+  const v = S.lib.find(x => x.id === el.dataset.id); const zones = [...(v.zones || []), { name: 'خانة جديدة', position: 'back', tier: (v.zones || []).slice(-1)[0]?.tier || 'VIP', rows: 10, seats_per_row: 20, blocked: 0 }];
+  await q(sb.from('venues').update({ zones }).eq('id', v.id)); v.zones = zones; renderKeep();
+});
+A['lz-del'] = (el) => run(async () => {
+  const v = S.lib.find(x => x.id === el.dataset.id); const zones = (v.zones || []).filter((_, i) => i !== Number(el.dataset.i));
+  await q(sb.from('venues').update({ zones }).eq('id', v.id)); v.zones = zones; renderKeep();
 });
 A['del-venue'] = (el) => run(async () => { const v = S.lib.find(x => x.id === el.dataset.id); if (!confirm(`حذف «${v.name}» من المكتبة؟`)) return; await q(sb.from('venues').delete().eq('id', v.id)); await loadLib(); render(); });
 async function signed(path) { const { data, error } = await sb.storage.from('charts').createSignedUrl(path, 3600); if (error) throw error; return data.signedUrl; }
@@ -1039,6 +1082,16 @@ CH['pick-venue'] = (el) => run(async () => {
   if (!el.value) { await q(sb.from('concerts').update({ venue_id: null }).eq('id', S.cid)); await refresh(); return; }
   if (await useVenue(el.value) === false) { render(); return; }
   await refresh(); toast('تم تحميل المسرح');
+});
+CH['lib'] = (el) => save(async () => {
+  const f = el.dataset.f; const v = S.lib.find(x => x.id === el.dataset.id);
+  const value = f === 'name' ? el.value : Math.max(0, N(el.value));
+  await q(sb.from('venues').update({ [f]: value }).eq('id', v.id)); v[f] = value; scheduleRender();
+});
+CH['lz'] = (el) => save(async () => {
+  const v = S.lib.find(x => x.id === el.dataset.vid); const zones = (v.zones || []).map(z => ({ ...z }));
+  const f = el.dataset.f; zones[Number(el.dataset.i)][f] = numF.has(f) ? Math.max(0, N(el.value)) : el.value;
+  await q(sb.from('venues').update({ zones }).eq('id', v.id)); v.zones = zones; scheduleRender();
 });
 CH['lib-name'] = (el) => save(async () => { await q(sb.from('venues').update({ name: el.value }).eq('id', el.dataset.id)); await loadLib(); });
 CH['prof-name'] = (el) => save(async () => { await q(sb.from('profiles').update({ full_name: el.value }).eq('id', el.dataset.id)); await loadTeam(); });
