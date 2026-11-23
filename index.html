@@ -120,8 +120,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Bump APP_VERSION and write APP_NOTES on every release: open copies compare it to show the update banner.
-const APP_VERSION = '2026.11.23-9';
-const APP_NOTES = 'قائمة مسارح قابلة للتعديل مع تكلفة الإيجار تُضاف تلقائياً عند الاختيار';
+const APP_VERSION = '2026.11.24-1';
+const APP_NOTES = 'مسرح جابر العلي في قائمة المسارح';
 const SB_URL = 'https://awkkcmyeaovcuiphlzye.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3a2tjbXllYW92Y3VpcGhsenllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MDg4NTAsImV4cCI6MjExMDk4NDg1MH0.1rM1XFyAIcQZ4iCj7K7hdUPlsVyyIcmPma7G1pdhTK8';
 const sb = createClient(SB_URL, SB_KEY);
@@ -158,7 +158,7 @@ const DEFAULT_TIERS = ['VIP', 'الذهبية', 'الفضية', 'العادية'
 // suggested weight (price ratio to the cheapest tier) and colour for common tier names
 const TIER_PRESETS = {
   'VIP': [4, '#5B3FA0'], 'الذهبية': [2.2, '#F3D9A8'], 'الفضية': [1.4, '#DCE3EA'], 'العادية': [1, '#E8E5DE'],
-  'VIP BOX': [5, '#8A2346'], 'VIP SEATS': [4, '#D9434B'], 'PLATINUM': [3, '#D8D2C8'], 'DIAMOND': [2.6, '#7D8FAE'],
+  'الصف الأمامي': [4, '#8B1A1A'], 'VIP BOX': [5, '#8A2346'], 'VIP SEATS': [4, '#D9434B'], 'PLATINUM': [3, '#D8D2C8'], 'DIAMOND': [2.6, '#7D8FAE'],
   'PEARL': [2, '#E9CFC2'], 'GOLD': [1.8, '#E4C489'], 'SILVER': [1.3, '#C4C6CC'], 'BRONZE': [1, '#DDB894']
 };
 const textOn = (hex) => {
