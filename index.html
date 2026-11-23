@@ -121,6 +121,12 @@ const CSTAT = { draft: 'مسودة', confirmed: 'مؤكدة', archived: 'مؤر�
 const CSTAT_CLS = { draft: 'st-estimated', confirmed: 'st-confirmed', archived: '' };
 const SECTIONS = [['venue', 'المسرح'], ['fixed', 'التكاليف الثابتة'], ['logistics', 'اللوجستيات'], ['revenue', 'الرعاة والإيرادات'], ['tickets', 'التذاكر'], ['scenarios', 'السيناريوهات']];
 const DEFAULT_TIERS = ['VIP', 'الذهبية', 'الفضية', 'العادية'];
+// suggested weight (price ratio to the cheapest tier) and colour for common tier names
+const TIER_PRESETS = {
+  'VIP': [4, '#5B3FA0'], 'الذهبية': [2.2, '#F3D9A8'], 'الفضية': [1.4, '#DCE3EA'], 'العادية': [1, '#E8E5DE'],
+  'VIP BOX': [5, '#8A2346'], 'VIP SEATS': [4, '#D9434B'], 'PLATINUM': [3, '#D8D2C8'], 'DIAMOND': [2.6, '#7D8FAE'],
+  'PEARL': [2, '#E9CFC2'], 'GOLD': [1.8, '#E4C489'], 'SILVER': [1.3, '#C4C6CC'], 'BRONZE': [1, '#DDB894']
+};
 const textOn = (hex) => {
   const h = String(hex || '#E8E5DE').replace('#', ''); if (h.length < 6) return '#1B1A22';
   const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
@@ -480,7 +486,7 @@ function renderLibrary() {
   const cards = S.lib.map(v => {
     const zones = Array.isArray(v.zones) ? v.zones : [];
     const total = zones.reduce((a, z) => a + zSeats(z), 0);
-    const colorOf = (z) => ({ color: (S.d?.tiers.find(t => t.name === z.tier)?.color) || ({ 'VIP': '#5B3FA0', 'الذهبية': '#F3D9A8', 'الفضية': '#DCE3EA' }[z.tier]) || '#E8E5DE' });
+    const colorOf = (z) => ({ color: (S.d?.tiers.find(t => t.name === z.tier)?.color) || TIER_PRESETS[z.tier]?.[1] || '#E8E5DE' });
     const mini = ['front', 'middle', 'back'].map(p => { const zs = zones.filter(z => z.position === p); return zs.length ? `<div style="display:flex;gap:4px">${zs.map(z => `<div style="flex:${Math.max(1, zSeats(z))} 1 0;min-width:14px;height:22px;border-radius:4px;background:${esc(colorOf(z).color)};border:1px solid rgba(0,0,0,.08)"></div>`).join('')}</div>` : ''; }).join('');
     const isCur = S.d && S.d.concert.venue_id === v.id;
     return `<div class="card stack" style="gap:12px;${isCur ? 'border-color:#5B3FA0;box-shadow:0 0 0 1px #5B3FA0' : ''}">
@@ -829,7 +835,7 @@ async function ensureTierIds(names) {
   const map = Object.fromEntries(S.d.tiers.map(t => [t.name, t.id]));
   for (const n of names) {
     if (n && !map[n]) {
-      const t = await q(sb.from('ticket_tiers').insert({ concert_id: S.cid, name: n, weight: 1, sort: Object.keys(map).length + 1 }).select().single());
+      const t = await q(sb.from('ticket_tiers').insert({ concert_id: S.cid, name: n, weight: TIER_PRESETS[n]?.[0] ?? 1, color: TIER_PRESETS[n]?.[1] ?? '#E8E5DE', sort: Object.keys(map).length + 1 }).select().single());
       map[n] = t.id;
     }
   }
