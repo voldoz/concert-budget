@@ -67,6 +67,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 .viewer .body{flex:1;min-height:0;display:flex;flex-wrap:wrap}
 .viewer .pic{flex:999 1 480px;min-width:0;height:100%;overflow:auto;background:#F1EFE9;padding:16px}
 .viewer aside{flex:1 1 260px;max-height:100%;overflow:auto;padding:16px;border-right:1px solid #E4E1D8;display:flex;flex-direction:column;gap:10px}
+.updatebar{position:fixed;left:12px;right:12px;bottom:12px;z-index:58;max-width:640px;margin:0 auto;background:#1C1830;color:#fff;border-radius:14px;padding:12px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.updatebar[hidden]{display:none}
 .savebar{position:fixed;top:12px;left:12px;z-index:55;background:#1C1830;color:#fff;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;opacity:0;transform:translateY(-8px);transition:opacity .2s,transform .2s;pointer-events:none}
 .savebar.show{opacity:1;transform:none}.savebar.ok{background:#1C5E3C}.savebar.err{background:#8A3412}
 @media (prefers-reduced-motion:reduce){.savebar{transition:none}}
@@ -88,10 +90,17 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 <div id="root"><div class="loading">جاري التحميل…</div></div>
 <div id="layer"></div>
 <div id="savebar" class="savebar" role="status" aria-live="polite"></div>
+<div id="updatebar" class="updatebar" role="status" aria-live="polite" hidden>
+  <div style="flex:1;min-width:0"><div style="font-weight:700">يوجد تحديث جديد للتطبيق</div><div id="updatenotes" style="font-size:13px;color:#D9D3EC"></div></div>
+  <div style="display:flex;gap:8px"><button type="button" class="btn btn-primary btn-sm" id="update-now" style="background:#fff;color:#3F2A75">تحديث الآن</button><button type="button" class="btn btn-sm" id="update-later" style="background:transparent;color:#fff;border-color:#5A5378">لاحقاً</button></div>
+</div>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// Bump APP_VERSION and write APP_NOTES on every release: open copies compare it to show the update banner.
+const APP_VERSION = '2026.11.23-6';
+const APP_NOTES = 'إشعار يظهر عند توفر تحديث جديد للتطبيق';
 const SB_URL = 'https://awkkcmyeaovcuiphlzye.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3a2tjbXllYW92Y3VpcGhsenllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MDg4NTAsImV4cCI6MjExMDk4NDg1MH0.1rM1XFyAIcQZ4iCj7K7hdUPlsVyyIcmPma7G1pdhTK8';
 const sb = createClient(SB_URL, SB_KEY);
@@ -1058,6 +1067,29 @@ sb.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_OUT') { S.me = null; S.cid = null; S.d = null; S.screen = 'concerts'; render(); }
   else if (event === 'SIGNED_IN' && !was) setTimeout(boot, 0);
 });
+/* ================= update notice ================= */
+const updBar = document.getElementById('updatebar');
+let updSnoozedFor = null;
+async function checkUpdate() {
+  try {
+    const r = await fetch(location.pathname + '?v=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return;
+    const t = await r.text();
+    const v = t.match(/const APP_VERSION = '([^']+)'/)?.[1];
+    if (!v || v === APP_VERSION || v === updSnoozedFor) return;
+    document.getElementById('updatenotes').textContent = t.match(/const APP_NOTES = '([^']*)'/)?.[1] || '';
+    updBar.dataset.v = v; updBar.hidden = false;
+  } catch { }
+}
+document.getElementById('update-now').addEventListener('click', () => {
+  if (saving) { toast('انتظر حتى يكتمل الحفظ'); return; }
+  location.replace(location.pathname + '?v=' + Date.now());
+});
+document.getElementById('update-later').addEventListener('click', () => { updSnoozedFor = updBar.dataset.v; updBar.hidden = true; });
+setInterval(checkUpdate, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
+setTimeout(checkUpdate, 15000);
+
 boot();
 </script>
 </body>
