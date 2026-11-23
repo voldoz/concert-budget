@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7352D1"/>
+      <stop offset="1" stop-color="#2A1B57"/>
+    </linearGradient>
+    <mask id="cut">
+      <rect x="0" y="0" width="1024" height="1024" fill="#000"/>
+      <rect x="192" y="322" width="640" height="380" rx="44" fill="#fff"/>
+      <circle cx="192" cy="512" r="58" fill="#000"/>
+      <circle cx="832" cy="512" r="58" fill="#000"/>
+      <circle cx="642" cy="322" r="26" fill="#000"/>
+      <circle cx="642" cy="702" r="26" fill="#000"/>
+    </mask>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g transform="rotate(-10 512 512)">
+    <rect x="200" y="338" width="640" height="380" rx="44" fill="#1A1036" opacity="0.35" mask="url(#cut)" transform="translate(0 18)"/>
+    <g mask="url(#cut)">
+      <rect x="192" y="322" width="640" height="380" fill="#FFFFFF"/>
+      <rect x="642" y="322" width="190" height="380" fill="#F2B64A"/>
+    </g>
+    <line x1="642" y1="360" x2="642" y2="664" stroke="#5B3FA0" stroke-width="10" stroke-dasharray="22 18" stroke-linecap="round"/>
+    <!-- beamed eighth notes -->
+    <g fill="#5B3FA0">
+      <rect x="452" y="400" width="26" height="190" rx="8"/>
+      <rect x="352" y="430" width="26" height="190" rx="8"/>
+      <path d="M352 418 L478 388 L478 446 L352 476 Z"/>
+      <ellipse cx="324" cy="622" rx="54" ry="40" transform="rotate(-18 324 622)"/>
+      <ellipse cx="424" cy="592" rx="54" ry="40" transform="rotate(-18 424 592)"/>
+    </g>
+    <!-- budget bars on the stub -->
+    <rect x="690" y="530" width="24" height="50" rx="6" fill="#5B3FA0"/>
+    <rect x="726" y="490" width="24" height="90" rx="6" fill="#5B3FA0"/>
+    <rect x="762" y="450" width="24" height="130" rx="6" fill="#5B3FA0"/>
+  </g>
+</svg>

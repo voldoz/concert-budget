@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ميزانية الحفلات</title>
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1C1830">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="الحفلات">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -86,7 +94,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 .tabbar{display:none}
 @media (max-width:760px){
   main{padding:16px 14px calc(96px + env(safe-area-inset-bottom))}
-  .side{flex-basis:100%;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 14px;gap:10px}
+  .side{flex-basis:100%;flex-direction:row;align-items:center;justify-content:space-between;padding:max(10px, env(safe-area-inset-top)) 14px 10px;gap:10px}
   .side .nav{display:none}
   .side .me{margin:0;padding:6px 8px;background:transparent}
   .side .me > div:nth-child(2){display:none}
@@ -112,8 +120,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Bump APP_VERSION and write APP_NOTES on every release: open copies compare it to show the update banner.
-const APP_VERSION = '2026.11.23-7';
-const APP_NOTES = 'القوائم صارت شريطاً أسفل الشاشة على الجوال';
+const APP_VERSION = '2026.11.23-8';
+const APP_NOTES = 'شعار للتطبيق عند حفظه على الشاشة الرئيسية';
 const SB_URL = 'https://awkkcmyeaovcuiphlzye.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3a2tjbXllYW92Y3VpcGhsenllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MDg4NTAsImV4cCI6MjExMDk4NDg1MH0.1rM1XFyAIcQZ4iCj7K7hdUPlsVyyIcmPma7G1pdhTK8';
 const sb = createClient(SB_URL, SB_KEY);
