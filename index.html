@@ -120,8 +120,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Bump APP_VERSION and write APP_NOTES on every release: open copies compare it to show the update banner.
-const APP_VERSION = '2026.11.24-1';
-const APP_NOTES = 'مسرح جابر العلي في قائمة المسارح';
+const APP_VERSION = '2026.11.24-2';
+const APP_NOTES = 'صورة مسرح جابر العلي مرفقة مع المسرح';
 const SB_URL = 'https://awkkcmyeaovcuiphlzye.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3a2tjbXllYW92Y3VpcGhsenllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MDg4NTAsImV4cCI6MjExMDk4NDg1MH0.1rM1XFyAIcQZ4iCj7K7hdUPlsVyyIcmPma7G1pdhTK8';
 const sb = createClient(SB_URL, SB_KEY);
@@ -516,7 +516,7 @@ function renderVenue() {
       <div class="stack" style="gap:4px"><span class="lbl">إجمالي المقاعد</span><span class="num big">${int(total)}</span><span class="muted">${d.zones.length} خانات · ${int(blocked)} محجوب</span></div>
       <div>${N(c.capacity) > 0 ? `<div class="note ${over ? 'err' : 'ok'}" role="status">${over ? 'تجاوز السعة المسموحة بـ ' + int(total - c.capacity) + ' مقعد' : 'ضمن السعة المسموحة · متبقٍ ' + int(c.capacity - total) + ' مقعد'}</div>` : '<div class="muted">أدخل السعة المسموحة لتفعيل التنبيه</div>'}</div>
     </section>
-    <section class="card stack"><div class="row">${legend}</div></section>
+    <section class="card row between"><div class="row">${legend}</div>${c.chart_path ? '<button class="btn btn-ghost btn-sm" data-act="view-concert-chart">صورة المسرح</button>' : ''}</section>
     <section class="card stack"><div class="row between"><div><h2 style="font-size:17px">تقسيم الخانات</h2><div class="muted">المقاعد = الصفوف × المقاعد في الصف − المحجوب. التعديلات تنعكس على التذاكر والأسعار مباشرة.</div></div><button class="btn btn-primary" data-act="add-zone">+ إضافة خانة</button></div>
     <div class="tblwrap"><table class="tbl" style="min-width:960px"><thead><tr><th>اسم الخانة</th><th>الموقع</th><th>فئة التذكرة</th><th>الصفوف</th><th>مقاعد/صف</th><th>محجوب</th><th>المقاعد</th><th></th></tr></thead><tbody>${zrows || '<tr><td colspan="8" class="muted">لا توجد خانات.</td></tr>'}</tbody></table></div></section>`;
 }
@@ -588,6 +588,8 @@ function renderLibrary() {
       ${open ? `<div class="tblwrap"><table class="tbl" style="min-width:960px"><thead><tr><th>الخانة</th><th>الموقع</th><th>التصنيف</th><th>الصفوف</th><th>مقاعد/صف</th><th>محجوب</th><th>المقاعد</th><th></th></tr></thead><tbody>${zrows || '<tr><td colspan="8" class="muted">لا توجد خانات.</td></tr>'}</tbody></table></div>
         <div class="row"><button class="btn btn-ghost btn-sm" data-act="lz-add" data-id="${v.id}">+ إضافة خانة</button><span class="muted">التعديلات تُحفظ تلقائياً. الحفلات التي اختارت هذا المسرح سابقاً لا تتغير.</span></div>` : ''}
       <div class="row">${isCur ? '<span class="chip" style="background:#EEE9F8;color:#3F2A75">مستخدم في الحفلة الحالية</span>' : S.d ? `<button class="btn btn-primary btn-sm" data-act="use-venue" data-id="${v.id}">اختيار للحفلة الحالية</button>` : ''}
+        ${v.chart_path ? `<button class="btn btn-ghost btn-sm" data-act="view-lib-chart" data-id="${v.id}">صورة المسرح</button>` : ''}
+        <label class="btn btn-ghost btn-sm" style="position:relative;overflow:hidden">${v.chart_path ? 'تغيير الصورة' : 'إرفاق صورة'}<input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" data-chg="lib-img" data-id="${v.id}" style="position:absolute;inset:0;opacity:0;cursor:pointer" aria-label="صورة المسرح"></label>
         <button class="btn btn-ghost btn-sm" data-act="lib-toggle" data-id="${v.id}">${open ? 'إغلاق الخانات' : 'تعديل الخانات'}</button>
         <button class="btn btn-danger btn-sm" data-act="del-venue" data-id="${v.id}" style="margin-right:auto">حذف</button></div></div>`;
   }).join('');
@@ -988,7 +990,7 @@ A['lz-del'] = (el) => run(async () => {
   await q(sb.from('venues').update({ zones }).eq('id', v.id)); v.zones = zones; renderKeep();
 });
 A['del-venue'] = (el) => run(async () => { const v = S.lib.find(x => x.id === el.dataset.id); if (!confirm(`حذف «${v.name}» من المكتبة؟`)) return; await q(sb.from('venues').delete().eq('id', v.id)); await loadLib(); render(); });
-async function signed(path) { const { data, error } = await sb.storage.from('charts').createSignedUrl(path, 3600); if (error) throw error; return data.signedUrl; }
+async function signed(path) { if (/^https?:\/\//.test(path)) return path; const { data, error } = await sb.storage.from('charts').createSignedUrl(path, 3600); if (error) throw error; return data.signedUrl; }
 A['view-concert-chart'] = () => run(async () => {
   const c = S.d.concert;
   S.ui.viewer = { title: 'المخطط المعتمد', name: c.chart_name, url: await signed(c.chart_path), isPdf: /\.pdf$/i.test(c.chart_path), zoom: 1,
@@ -1092,6 +1094,15 @@ CH['lz'] = (el) => save(async () => {
   const v = S.lib.find(x => x.id === el.dataset.vid); const zones = (v.zones || []).map(z => ({ ...z }));
   const f = el.dataset.f; zones[Number(el.dataset.i)][f] = numF.has(f) ? Math.max(0, N(el.value)) : el.value;
   await q(sb.from('venues').update({ zones }).eq('id', v.id)); v.zones = zones; scheduleRender();
+});
+CH['lib-img'] = (el) => save(async () => {
+  const f = el.files?.[0]; if (!f) return;
+  if (f.size > 20 * 1024 * 1024) throw new Error('حجم الصورة أكبر من 20MB');
+  const ext = (f.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const path = `library/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  await q(sb.storage.from('charts').upload(path, f, { contentType: f.type }));
+  await q(sb.from('venues').update({ chart_path: path, chart_name: f.name }).eq('id', el.dataset.id));
+  await loadLib(); renderKeep(); toast('تم إرفاق صورة المسرح');
 });
 CH['lib-name'] = (el) => save(async () => { await q(sb.from('venues').update({ name: el.value }).eq('id', el.dataset.id)); await loadLib(); });
 CH['prof-name'] = (el) => save(async () => { await q(sb.from('profiles').update({ full_name: el.value }).eq('id', el.dataset.id)); await loadTeam(); });
