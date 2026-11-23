@@ -1,0 +1,1023 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ميزانية الحفلات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#F5F4F0;color:#1B1A22;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;font-size:14px}
+a{color:#5B3FA0}
+h1,h2,h3{margin:0}
+.app{display:flex;flex-wrap:wrap;min-height:100vh}
+.side{flex:1 1 230px;background:#1C1830;color:#EDEAF5;padding:22px 14px;display:flex;flex-direction:column;gap:18px}
+.side .brand{display:flex;align-items:center;gap:10px;padding:0 8px}
+.side .logo{width:36px;height:36px;border-radius:10px;background:#5B3FA0;display:flex;align-items:center;justify-content:center}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav button{font-family:inherit;font-size:14px;font-weight:500;text-align:right;min-height:44px;padding:0 14px;border-radius:10px;border:0;cursor:pointer;background:transparent;color:#EDEAF5}
+.nav button:hover{background:#2A2444}
+.nav button.on{background:#5B3FA0;color:#fff;font-weight:600}
+.nav button:disabled{color:#8E87A6;cursor:not-allowed;background:transparent}
+.me{margin-top:auto;background:#2A2444;border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:#EDEAF5;color:#1C1830;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+main{flex:999 1 560px;min-width:0;padding:26px 30px 60px;display:flex;flex-direction:column;gap:20px}
+.card{background:#fff;border:1px solid #E4E1D8;border-radius:14px;padding:20px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.between{justify-content:space-between}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.grid-wide{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.btn{font-family:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:0 16px;min-height:44px;cursor:pointer;border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.btn-primary{background:#5B3FA0;color:#fff}.btn-primary:hover{background:#4A3285}
+.btn-ghost{background:#fff;color:#1B1A22;border-color:#D9D5CA}.btn-ghost:hover{background:#F1EFE9}
+.btn-danger{background:#fff;color:#8A3412;border-color:#EBC6B3}.btn-danger:hover{background:#FBE4D8}
+.btn-sm{min-height:36px;font-size:13px;padding:0 12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.lbl{font-size:12px;color:#5E5B66;font-weight:500}
+.muted{color:#5E5B66;font-size:13px}
+.num{font-variant-numeric:tabular-nums}
+.big{font-size:26px;font-weight:700}
+.chip{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.fld{font-family:inherit;font-size:14px;min-height:40px;border:1px solid #CFCAD9;border-radius:8px;padding:0 10px;color:#1B1A22;background:#fff;max-width:100%}
+.fld:focus{outline:2px solid #5B3FA0;outline-offset:1px}
+.fld.w-num{width:90px}.fld.w-sm{width:120px}.fld.w-md{width:170px}.fld.w-full{width:100%}
+.tblwrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
+.tbl th{text-align:right;font-weight:600;color:#5E5B66;font-size:12px;padding:10px;border-bottom:1px solid #E4E1D8;white-space:nowrap}
+.tbl td{padding:8px 10px;border-bottom:1px solid #EFECE5;vertical-align:middle}
+.tabs{display:inline-flex;gap:4px;background:#F1EFE9;padding:4px;border-radius:12px;flex-wrap:wrap}
+.tabs button{font-family:inherit;font-size:14px;font-weight:600;min-height:40px;padding:0 14px;border-radius:9px;border:0;cursor:pointer;background:transparent;color:#4A4752}
+.tabs button.on{background:#fff;color:#3F2A75;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.bar{height:10px;background:#EFECE5;border-radius:999px;overflow:hidden}.bar>div{height:100%;border-radius:999px}
+.note{border-radius:10px;padding:12px 14px;font-size:13px;font-weight:600}
+.note.ok{background:#DDF1E6;color:#1C5E3C}.note.warn{background:#FBEFD9;color:#7A4A08}.note.err{background:#FBE4D8;color:#8A3412}.note.info{background:#EEE9F8;color:#3F2A75}
+.st-estimated{background:#FBEFD9;color:#7A4A08}.st-confirmed{background:#E3EEFA;color:#1D4F80}.st-paid{background:#DDF1E6;color:#1C5E3C}
+.cf-high{background:#DDF1E6;color:#1C5E3C}.cf-medium{background:#FBEFD9;color:#7A4A08}.cf-low{background:#FBE4D8;color:#8A3412}
+.pos{color:#1D5C8C}.neg{color:#A8481A}
+.map{background:#FAF9F6;border:1px solid #EFECE5;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;overflow-x:auto}
+.stage{background:#1C1830;color:#EDEAF5;border-radius:10px;padding:12px;text-align:center;font-weight:700;margin:0 12%}
+.zrow{display:flex;gap:10px}
+.zblock{min-width:96px;min-height:70px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px;text-align:center;font-size:13px;border:1px solid rgba(0,0,0,.08)}
+.drop{border:2px dashed #CFC4EA;border-radius:12px;background:#FAF8FE;padding:22px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(20,18,32,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:16px}
+.viewer{background:#fff;border-radius:16px;width:100%;max-width:1200px;height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.viewer .body{flex:1;min-height:0;display:flex;flex-wrap:wrap}
+.viewer .pic{flex:999 1 480px;min-width:0;height:100%;overflow:auto;background:#F1EFE9;padding:16px}
+.viewer aside{flex:1 1 260px;max-height:100%;overflow:auto;padding:16px;border-right:1px solid #E4E1D8;display:flex;flex-direction:column;gap:10px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;background:#1C1830;color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;max-width:90vw;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.toast.err{background:#8A3412}
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth .card{width:100%;max-width:420px;display:flex;flex-direction:column;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.swatch{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.12);display:inline-block}
+.perm{font-family:inherit;font-size:13px;font-weight:600;min-height:36px;padding:0 12px;border-radius:999px;cursor:pointer;border:1px solid #D9D5CA;background:#fff;color:#5E5B66}
+.perm.on{background:#5B3FA0;border-color:#5B3FA0;color:#fff}
+.loading{padding:60px;text-align:center;color:#5E5B66}
+@media (max-width:640px){main{padding:18px 14px 48px}.side{padding:14px}.nav{flex-direction:row;flex-wrap:wrap}.nav button{min-height:40px}}
+</style>
+</head>
+<body>
+<div id="root"><div class="loading">جاري التحميل…</div></div>
+<div id="layer"></div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const SB_URL = 'https://awkkcmyeaovcuiphlzye.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3a2tjbXllYW92Y3VpcGhsenllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MDg4NTAsImV4cCI6MjExMDk4NDg1MH0.1rM1XFyAIcQZ4iCj7K7hdUPlsVyyIcmPma7G1pdhTK8';
+const sb = createClient(SB_URL, SB_KEY);
+
+let XLSX = null;
+async function getXLSX() { if (!XLSX) XLSX = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs'); return XLSX; }
+
+/* ================= state ================= */
+const S = {
+  session: null, me: null, perms: new Set(), recovering: false,
+  screen: 'concerts', concerts: [], concertProfit: {}, cid: null,
+  d: null, lib: [], profiles: {}, team: null,
+  ui: { authMode: 'login', costTab: null, upload: null, viewer: null, modal: null, exportOpen: false }
+};
+const root = document.getElementById('root');
+const layer = document.getElementById('layer');
+
+/* ================= helpers ================= */
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const N = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };
+const fmt = (n) => (n < -0.5 ? '− ' : '') + Math.round(Math.abs(N(n))).toLocaleString('en-US') + ' د.ك';
+const fmtP = (n) => N(n).toLocaleString('en-US', { maximumFractionDigits: 3 }) + ' د.ك';
+const int = (n) => Math.round(N(n)).toLocaleString('en-US');
+const pct = (n) => (isFinite(n) ? Math.round(n) : 0) + '%';
+const isMgr = () => S.me?.role === 'manager';
+const can = (sec) => isMgr() || S.perms.has(sec);
+const STATUS = { estimated: 'تقديري', confirmed: 'مؤكد', paid: 'مدفوع' };
+const POS = { front: 'أمام المسرح', middle: 'الوسط', back: 'الخلف / البلكونة' };
+const CONF = { high: 'ثقة عالية', medium: 'ثقة متوسطة', low: 'تحتاج مراجعة' };
+const CSTAT = { draft: 'مسودة', confirmed: 'مؤكدة', archived: 'مؤرشفة' };
+const CSTAT_CLS = { draft: 'st-estimated', confirmed: 'st-confirmed', archived: '' };
+const SECTIONS = [['venue', 'المسرح'], ['fixed', 'التكاليف الثابتة'], ['logistics', 'اللوجستيات'], ['revenue', 'الرعاة والإيرادات'], ['tickets', 'التذاكر'], ['scenarios', 'السيناريوهات']];
+const DEFAULT_TIERS = ['VIP', 'الذهبية', 'الفضية', 'العادية'];
+const textOn = (hex) => {
+  const h = String(hex || '#E8E5DE').replace('#', ''); if (h.length < 6) return '#1B1A22';
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#1B1A22' : '#FFFFFF';
+};
+const toK = (amount, currency, rate) => N(amount) * (currency === 'USD' ? N(rate) : 1);
+const zSeats = (z) => Math.max(0, N(z.rows) * N(z.seats_per_row) - N(z.blocked));
+const who = (id) => S.profiles[id]?.full_name || S.profiles[id]?.email || '—';
+
+function toast(msg, err) {
+  const t = document.createElement('div');
+  t.className = 'toast' + (err ? ' err' : ''); t.setAttribute('role', 'status'); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), err ? 6000 : 3000);
+}
+function errMsg(e) {
+  const m = String(e?.message || e || '');
+  if (/FORBIDDEN|row-level security|permission denied/i.test(m)) return 'ليس لديك صلاحية لهذا الإجراء';
+  if (/NOT_INVITED|Database error saving new user/i.test(m)) return 'هذا البريد غير مدعو. اطلب من المدير إضافتك أولاً';
+  if (/Invalid login credentials/i.test(m)) return 'البريد أو كلمة المرور غير صحيحة';
+  if (/Email not confirmed/i.test(m)) return 'لم يتم تأكيد البريد بعد. افتح رسالة التأكيد في بريدك';
+  if (/User already registered/i.test(m)) return 'هذا البريد مسجل مسبقاً، سجّل الدخول';
+  if (/Password should be/i.test(m)) return 'كلمة المرور قصيرة، استخدم 6 أحرف على الأقل';
+  return m || 'حدث خطأ غير متوقع';
+}
+async function run(fn) { try { await fn(); } catch (e) { console.error(e); toast(errMsg(e), true); } }
+async function q(p) { const { data, error } = await p; if (error) throw error; return data; }
+
+/* ================= calculations ================= */
+function calc(d, overrides) {
+  const c = d.concert, t = d.totals;
+  if (!t) return null;
+  const F = N(t.fixed_total) + N(t.logistics_total);
+  const S_ = N(t.cash_sponsors) + N(t.other_total);
+  const C = (N(c.platform_fee_pct) + N(c.gateway_fee_pct)) / 100;
+  const o = N(overrides?.occ ?? c.expected_occupancy) / 100;
+  const m = N(c.target_margin) / 100;
+  const tiers = (t.tiers || []).map(x => {
+    const seats = N(x.seats), comps = Math.min(seats, N(x.comps));
+    return { ...x, seats, comps, sell: seats - comps };
+  });
+  const sellTot = tiers.reduce((a, x) => a + x.sell, 0);
+  const wSum = tiers.reduce((a, x) => a + x.sell * N(x.weight), 0);
+  const need = (F * (1 + m) - S_) / (1 - C);
+  tiers.forEach(x => {
+    if (c.pricing_mode === 'auto') {
+      x.price = (need > 0 && o > 0 && wSum > 0) ? Math.ceil(need / (o * wSum) * N(x.weight)) : 0;
+    } else x.price = N(x.manual_price);
+  });
+  const gross = tiers.reduce((a, x) => a + x.price * x.sell, 0);
+  const at = (occ) => {
+    const ticket = gross * occ, comm = ticket * C, rev = ticket + S_, cost = F + comm;
+    return { occ, ticket, comm, rev, cost, profit: rev - cost, margin: cost > 0 ? (rev - cost) / cost * 100 : 0, sold: Math.round(sellTot * occ) };
+  };
+  const be = gross > 0 ? (F - S_) / (gross * (1 - C)) : Infinity;
+  return {
+    F, S: S_, C, o, tiers, sellTot, gross, need, cur: at(o), at,
+    seatsAll: tiers.reduce((a, x) => a + x.seats, 0), compsTot: tiers.reduce((a, x) => a + x.comps, 0),
+    be, beSeats: isFinite(be) ? Math.ceil(Math.max(0, be) * sellTot) : null,
+    fixed: N(t.fixed_total), logistics: N(t.logistics_total), inkind: N(t.inkind_total),
+    cash: N(t.cash_sponsors), other: N(t.other_total)
+  };
+}
+
+/* ================= data loading ================= */
+async function loadBase() {
+  const uid = S.session.user.id;
+  const { data: me } = await sb.from('profiles').select('*').eq('id', uid).maybeSingle();
+  S.me = me || null;
+  if (!S.me) return;
+  const perms = await q(sb.from('permissions').select('section').eq('user_id', uid));
+  S.perms = new Set(perms.map(p => p.section));
+  const profs = await q(sb.from('profiles').select('id,full_name,email,role'));
+  S.profiles = Object.fromEntries(profs.map(p => [p.id, p]));
+  await loadConcerts();
+  if (can('venue')) await loadLib();
+}
+async function loadConcerts() {
+  S.concerts = await q(sb.from('concerts').select('*').order('event_date', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false }));
+  S.concertProfit = {};
+  if (isMgr()) {
+    await Promise.all(S.concerts.map(async c => {
+      try {
+        const totals = await q(sb.rpc('concert_totals', { cid: c.id }));
+        const r = calc({ concert: c, totals });
+        S.concertProfit[c.id] = r ? r.cur.profit : null;
+      } catch { }
+    }));
+  }
+}
+async function loadLib() { S.lib = await q(sb.from('venues').select('*').order('created_at')); }
+async function loadTeam() {
+  const [profs, perms, invs] = await Promise.all([
+    q(sb.from('profiles').select('*').order('created_at')),
+    q(sb.from('permissions').select('*')),
+    q(sb.from('invitations').select('*').order('created_at'))
+  ]);
+  S.profiles = Object.fromEntries(profs.map(p => [p.id, p]));
+  S.team = { profs, perms, invs };
+}
+async function loadConcert() {
+  const cid = S.cid;
+  const [concert, tiers, zones, costs, sponsors, others, scenarios] = await Promise.all([
+    q(sb.from('concerts').select('*').eq('id', cid).single()),
+    q(sb.from('ticket_tiers').select('*').eq('concert_id', cid).order('sort')),
+    q(sb.from('concert_zones').select('*').eq('concert_id', cid).order('sort')),
+    q(sb.from('cost_items').select('*').eq('concert_id', cid).order('created_at')),
+    q(sb.from('sponsors').select('*').eq('concert_id', cid).order('created_at')),
+    q(sb.from('other_revenues').select('*').eq('concert_id', cid).order('created_at')),
+    q(sb.from('scenarios').select('*').eq('concert_id', cid).order('sort'))
+  ]);
+  let comps = [];
+  if (sponsors.length && (can('revenue') || can('tickets'))) {
+    comps = await q(sb.from('sponsor_comps').select('*').in('sponsor_id', sponsors.map(s => s.id)));
+  }
+  let totals = null;
+  if (can('tickets') || can('scenarios')) totals = await q(sb.rpc('concert_totals', { cid }));
+  S.d = { concert, tiers, zones, costs, sponsors, comps, others, scenarios, totals };
+}
+async function refresh() { if (S.cid) await loadConcert(); render(); }
+
+/* ================= navigation ================= */
+const SCREENS = [
+  ['concerts', 'الحفلات والأرشيف', () => true, false],
+  ['overview', 'نظرة عامة', () => isMgr(), true],
+  ['venue', 'المسرح والمقاعد', () => can('venue'), true],
+  ['library', 'مكتبة المسارح', () => can('venue'), false],
+  ['costs', 'التكاليف', () => can('fixed') || can('logistics'), true],
+  ['revenue', 'الرعاة والإيرادات', () => can('revenue'), true],
+  ['tickets', 'التذاكر والتسعير', () => can('tickets'), true],
+  ['scenarios', 'السيناريوهات', () => can('scenarios'), true],
+  ['team', 'الفريق والصلاحيات', () => isMgr(), false]
+];
+function firstScreenFor() {
+  const s = SCREENS.find(x => x[3] && x[2]());
+  return s ? s[0] : 'concerts';
+}
+async function go(screen) {
+  if (screen === 'team') await loadTeam();
+  if (screen === 'library') await loadLib();
+  if (screen === 'concerts') await loadConcerts();
+  S.screen = screen; S.ui.exportOpen = false;
+  if (SCREENS.find(x => x[0] === screen)?.[3] && S.cid) await loadConcert();
+  render(); window.scrollTo(0, 0);
+}
+
+/* ================= render: shell ================= */
+function render() {
+  if (S.recovering) { root.innerHTML = renderRecovery(); return; }
+  if (!S.session) { root.innerHTML = renderAuth(); return; }
+  if (!S.me) {
+    root.innerHTML = `<div class="auth"><div class="card"><h2>لا تملك صلاحية دخول</h2><p class="muted">حسابك غير مرتبط بفريق العمل. اطلب من المدير دعوتك.</p><button class="btn btn-ghost" data-act="logout">تسجيل الخروج</button></div></div>`;
+    return;
+  }
+  const nav = SCREENS.filter(s => s[2]()).map(([id, label, , needC]) =>
+    `<button class="${S.screen === id ? 'on' : ''}" data-act="go" data-id="${id}" ${needC && !S.cid ? 'disabled title="اختر حفلة أولاً"' : ''}>${label}</button>`).join('');
+  const initial = esc((S.me.full_name || S.me.email || '?').trim().charAt(0));
+  root.innerHTML = `<div class="app">
+    <nav class="side" aria-label="القائمة الرئيسية">
+      <div class="brand"><div class="logo"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <div><div style="font-weight:700;font-size:15px">ميزانية الحفلات</div><div style="font-size:12px;color:#B9B3CC">إنتاج وتسعير</div></div></div>
+      <div class="nav">${nav}</div>
+      <div class="me"><div class="avatar">${initial}</div><div style="flex:1;min-width:0"><div style="font-weight:600;overflow:hidden;text-overflow:ellipsis">${esc(S.me.full_name || S.me.email)}</div><div style="font-size:12px;color:#B9B3CC">${isMgr() ? 'المدير' : 'مساعد'}</div></div>
+        <button class="btn btn-sm" style="background:transparent;color:#EDEAF5;border-color:#4A4466" data-act="logout">خروج</button></div>
+    </nav>
+    <main>${renderHeader()}${renderScreen()}</main></div>`;
+  renderLayer();
+}
+
+function renderHeader() {
+  const screenNeeds = SCREENS.find(x => x[0] === S.screen)?.[3];
+  if (!screenNeeds || !S.d) return '';
+  const c = S.d.concert;
+  const meta = [c.event_date, c.location, c.venue_name].filter(Boolean).map(esc).join(' · ');
+  return `<header class="row between">
+    <div class="stack" style="gap:6px"><div class="row" style="gap:10px"><h1 style="font-size:24px">${esc(c.name)}</h1><span class="chip ${CSTAT_CLS[c.status]}" style="${c.status === 'archived' ? 'background:#ECEAF0;color:#4A4752' : ''}">${CSTAT[c.status]}</span></div>
+    <div class="muted">${meta || '&nbsp;'}</div></div>
+    <div class="row">
+      <button class="btn btn-ghost" data-act="reload">تحديث</button>
+      ${isMgr() ? `<button class="btn btn-ghost" data-act="edit-concert">بيانات الحفلة</button><button class="btn btn-primary" data-act="export-open">تصدير التقرير</button>` : ''}
+    </div></header>
+    ${S.ui.exportOpen ? renderExport() : ''}`;
+}
+
+function renderScreen() {
+  const allowed = SCREENS.find(x => x[0] === S.screen);
+  if (!allowed || !allowed[2]()) return `<div class="card">هذا القسم غير متاح لصلاحياتك.</div>`;
+  if (allowed[3] && !S.d) return `<div class="card">اختر حفلة من قائمة الحفلات أولاً.</div>`;
+  switch (S.screen) {
+    case 'concerts': return renderConcerts();
+    case 'overview': return renderOverview();
+    case 'venue': return renderVenue();
+    case 'library': return renderLibrary();
+    case 'costs': return renderCosts();
+    case 'revenue': return renderRevenue();
+    case 'tickets': return renderTickets();
+    case 'scenarios': return renderScenarios();
+    case 'team': return renderTeam();
+  }
+  return '';
+}
+
+/* ================= auth ================= */
+function renderAuth() {
+  const m = S.ui.authMode;
+  return `<div class="auth"><form class="card" data-form="auth">
+    <div class="row" style="gap:10px"><div class="avatar" style="background:#5B3FA0;color:#fff">♪</div><h1 style="font-size:20px">ميزانية الحفلات</h1></div>
+    <div class="tabs" role="tablist"><button type="button" class="${m === 'login' ? 'on' : ''}" data-act="auth-mode" data-id="login">تسجيل الدخول</button><button type="button" class="${m === 'signup' ? 'on' : ''}" data-act="auth-mode" data-id="signup">حساب جديد</button><button type="button" class="${m === 'reset' ? 'on' : ''}" data-act="auth-mode" data-id="reset">نسيت كلمة المرور</button></div>
+    ${m === 'signup' ? `<div class="field"><label class="lbl" for="a-name">الاسم</label><input id="a-name" name="name" class="fld w-full" required></div>` : ''}
+    <div class="field"><label class="lbl" for="a-email">البريد الإلكتروني</label><input id="a-email" name="email" type="email" class="fld w-full" required autocomplete="email" dir="ltr"></div>
+    ${m !== 'reset' ? `<div class="field"><label class="lbl" for="a-pass">كلمة المرور</label><input id="a-pass" name="password" type="password" class="fld w-full" required minlength="6" autocomplete="${m === 'signup' ? 'new-password' : 'current-password'}" dir="ltr"></div>` : ''}
+    <button class="btn btn-primary" type="submit">${m === 'login' ? 'دخول' : m === 'signup' ? 'إنشاء الحساب' : 'إرسال رابط الاستعادة'}</button>
+    ${m === 'signup' ? `<p class="muted" style="margin:0">أول حساب يُنشأ يصبح المدير. بعدها يُسمح فقط للبريد الذي يدعوه المدير.</p>` : ''}
+  </form></div>`;
+}
+function renderRecovery() {
+  return `<div class="auth"><form class="card" data-form="newpass"><h2>تعيين كلمة مرور جديدة</h2>
+    <div class="field"><label class="lbl" for="np">كلمة المرور الجديدة</label><input id="np" name="password" type="password" minlength="6" class="fld w-full" required dir="ltr"></div>
+    <button class="btn btn-primary" type="submit">حفظ</button></form></div>`;
+}
+
+/* ================= concerts ================= */
+function renderConcerts() {
+  const cards = S.concerts.map(c => {
+    const p = S.concertProfit[c.id];
+    const isCur = c.id === S.cid;
+    let result = '';
+    if (isMgr()) {
+      if (c.status === 'archived' && c.actual_profit != null) result = `<div class="row between"><span class="muted">الربح الفعلي</span><span class="num ${N(c.actual_profit) >= 0 ? 'pos' : 'neg'}" style="font-weight:700">${fmt(c.actual_profit)}</span></div>`;
+      else if (p != null) result = `<div class="row between"><span class="muted">الربح المتوقع</span><span class="num ${p >= 0 ? 'pos' : 'neg'}" style="font-weight:700">${fmt(p)}</span></div>`;
+    }
+    return `<div class="card stack" style="gap:12px;${isCur ? 'border-color:#5B3FA0;box-shadow:0 0 0 1px #5B3FA0' : ''}">
+      <div class="row between" style="align-items:flex-start"><div><div style="font-weight:700;font-size:16px">${esc(c.name)}</div>
+      <div class="muted">${[c.event_date, c.location, c.venue_name].filter(Boolean).map(esc).join(' · ') || '—'}</div></div>
+      <span class="chip ${CSTAT_CLS[c.status]}" style="${c.status === 'archived' ? 'background:#ECEAF0;color:#4A4752' : ''}">${CSTAT[c.status]}</span></div>
+      ${result}
+      <div class="row"><button class="btn btn-primary btn-sm" data-act="open-concert" data-id="${c.id}">${isCur ? 'مفتوحة' : 'فتح'}</button>
+      ${isMgr() ? `<button class="btn btn-ghost btn-sm" data-act="dup-concert" data-id="${c.id}">نسخ كقالب</button><button class="btn btn-danger btn-sm" data-act="del-concert" data-id="${c.id}">حذف</button>` : ''}</div></div>`;
+  }).join('');
+  return `<div class="row between"><div><h2 style="font-size:20px">الحفلات والأرشيف</h2><div class="muted">اختر حفلة للعمل عليها.</div></div>
+    ${isMgr() ? `<button class="btn btn-primary" data-act="new-concert">+ حفلة جديدة</button>` : ''}</div>
+    ${S.concerts.length ? `<div class="grid-wide">${cards}</div>` : `<div class="card muted">لا توجد حفلات بعد.${isMgr() ? ' ابدأ بإنشاء حفلة جديدة.' : ''}</div>`}`;
+}
+
+/* ================= overview ================= */
+function renderOverview() {
+  const d = S.d, r = calc(d);
+  if (!r) return '<div class="card">لا تتوفر بيانات.</div>';
+  const costTot = r.fixed + r.logistics + r.cur.comm || 1;
+  const br = [['التكاليف الثابتة', r.fixed, '#5B3FA0'], ['التكاليف اللوجستية', r.logistics, '#C27A1E'], ['العمولات والرسوم', r.cur.comm, '#2F7FB8']]
+    .map(([l, v, col]) => `<div class="stack" style="gap:6px"><div class="row between"><span>${l}</span><span class="num" style="font-weight:600">${fmt(v)} <span class="muted">(${pct(v / costTot * 100)})</span></span></div><div class="bar"><div style="width:${Math.max(2, v / costTot * 100)}%;background:${col}"></div></div></div>`).join('');
+  const stat = ['paid', 'confirmed', 'estimated'].map(st => {
+    const items = d.costs.filter(c => c.status === st);
+    return `<div class="row between" style="padding:10px 0;border-bottom:1px solid #EFECE5"><div class="row" style="gap:10px"><span class="chip st-${st}">${STATUS[st]}</span><span class="muted">${items.length} بند</span></div><span class="num" style="font-weight:600">${fmt(items.reduce((a, c) => a + toK(c.amount, c.currency, d.concert.usd_rate), 0))}</span></div>`;
+  }).join('');
+  const scen = d.scenarios.map(s => { const x = r.at(N(s.occupancy) / 100); return `<div style="border:1px solid #E4E1D8;border-radius:12px;padding:14px" class="stack"><span class="lbl">${esc(s.label)} · إشغال ${pct(s.occupancy)}</span><span class="num ${x.profit >= 0 ? 'pos' : 'neg'}" style="font-size:20px;font-weight:700">${fmt(x.profit)}</span></div>`; }).join('');
+  return `<div class="grid">
+    <div class="card stack" style="gap:6px"><span class="lbl">إجمالي التكاليف المتوقعة</span><span class="num big">${fmt(r.cur.cost)}</span><span class="muted">شامل العمولات عند إشغال ${pct(r.o * 100)}</span></div>
+    <div class="card stack" style="gap:6px"><span class="lbl">إجمالي الإيرادات المتوقعة</span><span class="num big">${fmt(r.cur.rev)}</span><span class="muted">تذاكر + رعاة + إيرادات أخرى</span></div>
+    <div class="card stack" style="gap:6px"><span class="lbl">صافي الربح المتوقع</span><span class="num big ${r.cur.profit >= 0 ? 'pos' : 'neg'}">${fmt(r.cur.profit)}</span><span class="muted">هامش ${pct(r.cur.margin)} من التكاليف</span></div>
+    <div class="card stack" style="gap:6px"><span class="lbl">نقطة التعادل</span><span class="num big">${beLabel(r)}</span><span class="muted">${r.beSeats != null ? int(r.beSeats) + ' تذكرة لتغطية التكاليف' : 'حدد الأسعار والمقاعد أولاً'}</span></div>
+  </div>
+  <div class="grid-wide">
+    <section class="card stack"><h2 style="font-size:16px">توزيع التكاليف</h2>${br}<div class="muted">الرعاية العينية وفّرت ${fmt(r.inkind)} من التكاليف.</div></section>
+    <section class="card stack" style="gap:4px"><h2 style="font-size:16px;margin-bottom:8px">حالة بنود التكاليف</h2>${stat}<div class="muted" style="margin-top:8px">المبالغ الأصلية قبل خصم الرعاية العينية.</div></section>
+  </div>
+  <section class="card stack"><div class="row between"><h2 style="font-size:16px">ملخص السيناريوهات</h2><button class="btn btn-ghost btn-sm" data-act="go" data-id="scenarios">التفاصيل</button></div><div class="grid">${scen}</div></section>`;
+}
+const beLabel = (r) => !isFinite(r.be) ? '—' : r.be > 1 ? 'غير ممكن' : r.be <= 0 ? 'مغطاة بالرعاة' : pct(r.be * 100);
+
+/* ================= venue ================= */
+function tierById(id) { return S.d.tiers.find(t => t.id === id); }
+function renderMap(zones, tierOf) {
+  const rows = ['front', 'middle', 'back'].map(p => {
+    const zs = zones.filter(z => z.position === p);
+    if (!zs.length) return '';
+    return `<div class="stack" style="gap:6px"><span class="lbl">${POS[p]}</span><div class="zrow">${zs.map(z => {
+      const t = tierOf(z); const bg = t?.color || '#E8E5DE';
+      return `<div class="zblock" style="flex:${Math.max(1, zSeats(z))} 1 0;background:${esc(bg)};color:${textOn(bg)}"><span style="font-weight:700">${esc(z.name)}</span><span class="num" style="font-size:12px">${int(zSeats(z))} مقعد</span></div>`;
+    }).join('')}</div></div>`;
+  }).join('');
+  return `<div class="map"><div class="stage">المسرح</div>${rows || '<div class="muted" style="text-align:center">لا توجد خانات بعد</div>'}</div>`;
+}
+function renderVenue() {
+  const d = S.d, c = d.concert;
+  const total = d.zones.reduce((a, z) => a + zSeats(z), 0);
+  const blocked = d.zones.reduce((a, z) => a + N(z.blocked), 0);
+  const over = N(c.capacity) > 0 && total > N(c.capacity);
+  const tierOpts = (sel) => d.tiers.map(t => `<option value="${t.id}" ${t.id === sel ? 'selected' : ''}>${esc(t.name)}</option>`).join('');
+  const legend = d.tiers.map(t => `<span class="row" style="gap:6px;font-size:13px"><span class="swatch" style="background:${esc(t.color)};width:14px;height:14px"></span>${esc(t.name)} <span class="num muted">(${int(d.zones.filter(z => z.tier_id === t.id).reduce((a, z) => a + zSeats(z), 0))})</span></span>`).join('');
+  const zrows = d.zones.map(z => `<tr>
+    <td><div class="row" style="gap:8px;flex-wrap:nowrap"><span class="swatch" style="background:${esc(tierById(z.tier_id)?.color || '#E8E5DE')}"></span><input class="fld w-md" aria-label="اسم الخانة" value="${esc(z.name)}" data-chg="zone" data-id="${z.id}" data-f="name"></div></td>
+    <td><select class="fld w-md" aria-label="الموقع" data-chg="zone" data-id="${z.id}" data-f="position">${Object.entries(POS).map(([k, v]) => `<option value="${k}" ${k === z.position ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
+    <td><select class="fld w-sm" aria-label="فئة التذكرة" data-chg="zone" data-id="${z.id}" data-f="tier_id"><option value="">—</option>${tierOpts(z.tier_id)}</select></td>
+    <td><input class="fld w-num num" type="number" min="0" aria-label="الصفوف" value="${N(z.rows)}" data-chg="zone" data-id="${z.id}" data-f="rows"></td>
+    <td><input class="fld w-num num" type="number" min="0" aria-label="مقاعد في الصف" value="${N(z.seats_per_row)}" data-chg="zone" data-id="${z.id}" data-f="seats_per_row"></td>
+    <td><input class="fld w-num num" type="number" min="0" aria-label="محجوب" value="${N(z.blocked)}" data-chg="zone" data-id="${z.id}" data-f="blocked"></td>
+    <td class="num" style="font-weight:700">${int(zSeats(z))}</td>
+    <td><button class="btn btn-danger btn-sm" data-act="del-zone" data-id="${z.id}">حذف</button></td></tr>`).join('');
+  const up = S.ui.upload;
+  const showUploader = up && up.target === 'concert';
+  return `<section class="card row between" style="background:#FAF8FE;border-color:#CFC4EA;align-items:flex-end">
+      <div class="field" style="flex:1 1 320px"><label class="lbl" for="v-pick">اختر المسرح من المكتبة (${S.lib.length} تصاميم)</label>
+      <select id="v-pick" class="fld w-full" data-chg="pick-venue"><option value="">— تصميم مخصص لهذه الحفلة —</option>${S.lib.map(v => `<option value="${v.id}" ${v.id === c.venue_id ? 'selected' : ''}>${esc(v.name)}</option>`).join('')}</select></div>
+      <div class="row"><button class="btn btn-ghost" data-act="save-to-lib">حفظ التصميم الحالي في المكتبة</button><button class="btn btn-ghost" data-act="go" data-id="library">إدارة المكتبة</button></div>
+    </section>
+    <section class="card grid" style="align-items:end">
+      <div class="field"><label class="lbl" for="v-name">اسم المسرح / القاعة</label><input id="v-name" class="fld w-full" value="${esc(c.venue_name)}" data-chg="concert" data-f="venue_name"></div>
+      <div class="field"><label class="lbl" for="v-cap">السعة القصوى المسموحة (حسب الترخيص)</label><input id="v-cap" type="number" min="0" class="fld w-full num" value="${N(c.capacity)}" data-chg="concert" data-f="capacity"></div>
+      <div class="stack" style="gap:4px"><span class="lbl">إجمالي المقاعد</span><span class="num big">${int(total)}</span><span class="muted">${d.zones.length} خانات · ${int(blocked)} محجوب</span></div>
+      <div>${N(c.capacity) > 0 ? `<div class="note ${over ? 'err' : 'ok'}" role="status">${over ? 'تجاوز السعة المسموحة بـ ' + int(total - c.capacity) + ' مقعد' : 'ضمن السعة المسموحة · متبقٍ ' + int(c.capacity - total) + ' مقعد'}</div>` : '<div class="muted">أدخل السعة المسموحة لتفعيل التنبيه</div>'}</div>
+    </section>
+    ${showUploader ? renderUploader() : `<section class="card row between"><div><h2 style="font-size:17px">رفع مخطط المسرح</h2><div class="muted">ارفع صورة أو PDF للمخطط ليُحفظ مع الحفلة، وأدخل الخانات وأنت تشاهده.</div></div><button class="btn btn-primary" data-act="start-upload" data-id="concert">رفع مخطط</button></section>`}
+    <section class="card stack"><div class="row between"><div class="row"><h2 style="font-size:17px">مخطط القاعة</h2>${c.chart_path ? `<button class="btn btn-ghost btn-sm" data-act="view-concert-chart">عرض المخطط الأصلي</button>` : ''}</div><div class="row">${legend}</div></div>${renderMap(d.zones, z => tierById(z.tier_id))}</section>
+    <section class="card stack"><div class="row between"><div><h2 style="font-size:17px">تقسيم الخانات</h2><div class="muted">المقاعد = الصفوف × المقاعد في الصف − المحجوب. التعديلات تنعكس على التذاكر والأسعار مباشرة.</div></div><button class="btn btn-primary" data-act="add-zone">+ إضافة خانة</button></div>
+    <div class="tblwrap"><table class="tbl" style="min-width:960px"><thead><tr><th>اسم الخانة</th><th>الموقع</th><th>فئة التذكرة</th><th>الصفوف</th><th>مقاعد/صف</th><th>محجوب</th><th>المقاعد</th><th></th></tr></thead><tbody>${zrows || '<tr><td colspan="8" class="muted">لا توجد خانات.</td></tr>'}</tbody></table></div></section>`;
+}
+
+function renderUploader() {
+  const up = S.ui.upload;
+  const libHead = up.target === 'library' ? `<div class="grid"><div class="field"><label class="lbl" for="u-name">اسم التصميم</label><input id="u-name" class="fld w-full" value="${esc(up.newName)}" data-chg="up-meta" data-f="newName"></div>
+    <div class="field"><label class="lbl" for="u-cap">السعة القصوى المسموحة</label><input id="u-cap" type="number" min="0" class="fld w-full num" value="${N(up.newCap)}" data-chg="up-meta" data-f="newCap"></div></div>` : '';
+  let body = '';
+  if (up.stage === 'idle') {
+    body = `<div class="drop"><svg aria-hidden="true" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#5B3FA0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      <label for="u-file" style="font-weight:600">اختر صورة المخطط (JPG، PNG، WEBP، PDF)</label>
+      <input id="u-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf" data-chg="up-file" style="font-family:inherit;max-width:100%">
+      <span class="muted">أو أضف الخانات يدوياً بدون صورة</span><button class="btn btn-ghost btn-sm" data-act="up-manual">إدخال يدوي</button></div>`;
+  } else if (up.stage === 'busy') {
+    body = `<div class="drop" role="status"><div style="font-weight:700">جاري رفع ${esc(up.fileName)}…</div></div>`;
+  } else {
+    const tierNames = up.tierNames;
+    const total = up.zones.reduce((a, z) => a + zSeats(z), 0);
+    const rows = up.zones.map((z, i) => `<tr>
+      <td><input class="fld w-md" aria-label="اسم الخانة" value="${esc(z.name)}" data-chg="up-zone" data-i="${i}" data-f="name"></td>
+      <td><select class="fld w-md" aria-label="الموقع" data-chg="up-zone" data-i="${i}" data-f="position">${Object.entries(POS).map(([k, v]) => `<option value="${k}" ${k === z.position ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
+      <td><select class="fld w-sm" aria-label="التصنيف" data-chg="up-zone" data-i="${i}" data-f="tier">${tierNames.map(n => `<option ${n === z.tier ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></td>
+      <td><input class="fld w-num num" type="number" min="0" aria-label="الصفوف" value="${N(z.rows)}" data-chg="up-zone" data-i="${i}" data-f="rows"></td>
+      <td><input class="fld w-num num" type="number" min="0" aria-label="مقاعد في الصف" value="${N(z.seats_per_row)}" data-chg="up-zone" data-i="${i}" data-f="seats_per_row"></td>
+      <td><input class="fld w-num num" type="number" min="0" aria-label="محجوب" value="${N(z.blocked)}" data-chg="up-zone" data-i="${i}" data-f="blocked"></td>
+      <td class="num" style="font-weight:700">${int(zSeats(z))}</td>
+      <td><button class="btn btn-danger btn-sm" data-act="up-del" data-i="${i}">حذف</button></td></tr>`).join('');
+    body = `<div class="stack">
+      ${up.path ? `<div class="row" style="align-items:stretch"><button class="btn btn-ghost" data-act="up-view" style="flex:0 1 320px;min-height:160px;padding:0;overflow:hidden;cursor:zoom-in">${up.isPdf ? `<span style="padding:20px">ملف PDF · ${esc(up.fileName)}<br>اضغط للمراجعة</span>` : `<img src="${esc(up.previewUrl)}" alt="صورة المخطط المرفوع" style="width:100%;height:200px;object-fit:contain;background:#FBFAF7">`}</button>
+      <div class="stack" style="flex:1 1 240px;gap:6px;justify-content:center"><div style="font-weight:700">أدخل الخانات من المخطط</div><div class="muted">اضغط على الصورة لفتحها وتكبيرها وأنت تُدخل الخانات وأعداد الصفوف والمقاعد بالأسفل.</div></div></div>` : ''}
+      <div>${up.zones.length} خانات · <span class="num" style="font-weight:700">${int(total)}</span> مقعد</div>
+      <div class="tblwrap"><table class="tbl" style="min-width:960px"><thead><tr><th>الخانة</th><th>الموقع</th><th>التصنيف</th><th>الصفوف</th><th>مقاعد/صف</th><th>محجوب</th><th>المقاعد</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="muted">لا توجد خانات.</td></tr>'}</tbody></table></div>
+      <div class="row"><button class="btn btn-ghost btn-sm" data-act="up-add">+ خانة</button></div>
+      <div class="row"><button class="btn btn-primary" data-act="up-apply">${up.target === 'library' ? 'حفظ التصميم في المكتبة' : 'اعتماد وتطبيق على الخانات'}</button><button class="btn btn-ghost" data-act="up-cancel">إلغاء</button></div>
+      ${up.target === 'concert' ? '<div class="muted">الاعتماد يستبدل تقسيم الخانات الحالي، وتُحفظ الصورة مع الحفلة.</div>' : ''}</div>`;
+  }
+  return `<section class="card stack" style="border-color:#CFC4EA"><div class="row between"><div><h2 style="font-size:17px">${up.target === 'library' ? 'إضافة تصميم مسرح جديد إلى المكتبة' : 'رفع مخطط المسرح'}</h2></div>${up.stage !== 'busy' ? '<button class="btn btn-ghost btn-sm" data-act="up-cancel">إغلاق</button>' : ''}</div>${libHead}${body}</section>`;
+}
+
+/* ================= library ================= */
+function renderLibrary() {
+  const up = S.ui.upload;
+  const cards = S.lib.map(v => {
+    const zones = Array.isArray(v.zones) ? v.zones : [];
+    const total = zones.reduce((a, z) => a + zSeats(z), 0);
+    const colorOf = (z) => ({ color: (S.d?.tiers.find(t => t.name === z.tier)?.color) || ({ 'VIP': '#5B3FA0', 'الذهبية': '#F3D9A8', 'الفضية': '#DCE3EA' }[z.tier]) || '#E8E5DE' });
+    const mini = ['front', 'middle', 'back'].map(p => { const zs = zones.filter(z => z.position === p); return zs.length ? `<div style="display:flex;gap:4px">${zs.map(z => `<div style="flex:${Math.max(1, zSeats(z))} 1 0;min-width:14px;height:22px;border-radius:4px;background:${esc(colorOf(z).color)};border:1px solid rgba(0,0,0,.08)"></div>`).join('')}</div>` : ''; }).join('');
+    const isCur = S.d && S.d.concert.venue_id === v.id;
+    return `<div class="card stack" style="gap:12px;${isCur ? 'border-color:#5B3FA0;box-shadow:0 0 0 1px #5B3FA0' : ''}">
+      <div style="background:#FAF9F6;border:1px solid #EFECE5;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px"><div style="background:#1C1830;height:10px;border-radius:4px;margin:0 18%"></div>${mini || '<div class="muted" style="text-align:center">بدون خانات</div>'}</div>
+      <div class="field"><span class="lbl">اسم التصميم</span><input class="fld w-full" style="font-weight:600" aria-label="اسم التصميم" value="${esc(v.name)}" data-chg="lib-name" data-id="${v.id}"></div>
+      <div class="row muted" style="gap:14px"><span><b class="num" style="color:#1B1A22">${int(total)}</b> مقعد</span><span><b class="num" style="color:#1B1A22">${zones.length}</b> خانات</span><span>السعة <b class="num" style="color:#1B1A22">${int(v.capacity)}</b></span></div>
+      <div class="row">${isCur ? '<span class="chip" style="background:#EEE9F8;color:#3F2A75">مستخدم في الحفلة الحالية</span>' : S.d ? `<button class="btn btn-primary btn-sm" data-act="use-venue" data-id="${v.id}">استخدام للحفلة الحالية</button>` : ''}
+      ${v.chart_path ? `<button class="btn btn-ghost btn-sm" data-act="view-lib-chart" data-id="${v.id}">عرض المخطط</button>` : '<span class="muted" style="font-size:12px">بدون صورة مخطط</span>'}
+      <button class="btn btn-danger btn-sm" data-act="del-venue" data-id="${v.id}" style="margin-right:auto">حذف</button></div></div>`;
+  }).join('');
+  return `<div class="row between"><div><h2 style="font-size:20px">مكتبة المسارح</h2><div class="muted">تصاميم المسارح المحفوظة. اختر تصميماً لتُحمَّل بياناته كاملة على الحفلة المفتوحة.</div></div>
+    ${up && up.target === 'library' ? '' : '<button class="btn btn-primary" data-act="start-upload" data-id="library">+ إضافة تصميم مسرح</button>'}</div>
+    ${up && up.target === 'library' ? renderUploader() : ''}
+    ${S.lib.length ? `<div class="grid-wide">${cards}</div>` : '<div class="card muted">المكتبة فارغة. أضف أول تصميم مسرح.</div>'}`;
+}
+
+/* ================= costs ================= */
+function renderCosts() {
+  const d = S.d, c = d.concert;
+  const tabs = [['fixed', 'الثابتة'], ['logistics', 'اللوجستية']].filter(([k]) => can(k));
+  if (!S.ui.costTab || !can(S.ui.costTab)) S.ui.costTab = tabs[0][0];
+  const tab = S.ui.costTab;
+  const coverOf = (id) => d.sponsors.filter(s => s.kind === 'inkind' && s.covers_cost_id === id);
+  const rows = d.costs.filter(x => x.section === tab).map(x => {
+    const k = toK(x.amount, x.currency, c.usd_rate);
+    const cov = coverOf(x.id); const covK = Math.min(k, cov.reduce((a, s) => a + toK(s.amount, s.currency, c.usd_rate), 0));
+    return `<tr>
+      <td><input class="fld w-md" aria-label="البند" value="${esc(x.name)}" data-chg="cost" data-id="${x.id}" data-f="name"></td>
+      <td><div class="row" style="gap:6px;flex-wrap:nowrap"><input class="fld w-sm num" type="number" min="0" step="any" aria-label="المبلغ" value="${N(x.amount)}" data-chg="cost" data-id="${x.id}" data-f="amount">
+        <select class="fld" style="width:84px" aria-label="العملة" data-chg="cost" data-id="${x.id}" data-f="currency"><option value="KWD" ${x.currency === 'KWD' ? 'selected' : ''}>د.ك</option><option value="USD" ${x.currency === 'USD' ? 'selected' : ''}>$</option></select></div></td>
+      <td class="num" style="font-weight:600">${fmt(k - covK)}${covK > 0 ? `<div style="font-size:12px;font-weight:500;color:#1E5A55">مغطى برعاية: ${fmt(covK)} · ${cov.map(s => esc(s.name)).join('، ')}</div>` : ''}</td>
+      <td><select class="fld w-sm" aria-label="الحالة" data-chg="cost" data-id="${x.id}" data-f="status">${Object.entries(STATUS).map(([k2, v]) => `<option value="${k2}" ${k2 === x.status ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
+      <td class="muted">${esc(who(x.created_by))}</td>
+      <td><button class="btn btn-danger btn-sm" data-act="del-cost" data-id="${x.id}">حذف</button></td></tr>`;
+  }).join('');
+  const tabTotal = d.costs.filter(x => x.section === tab).reduce((a, x) => {
+    const k = toK(x.amount, x.currency, c.usd_rate); const covK = Math.min(k, coverOf(x.id).reduce((b, s) => b + toK(s.amount, s.currency, c.usd_rate), 0));
+    return a + k - covK;
+  }, 0);
+  const rateCard = `<section class="card row between">
+    <div class="stack" style="gap:4px"><span class="lbl">سعر صرف الدولار لهذه الحفلة</span>
+      <span class="num" style="font-size:20px;font-weight:700">1 $ = ${N(c.usd_rate).toFixed(4)} د.ك</span>
+      <span class="muted">${c.rate_locked ? 'مثبّت' + (c.rate_fetched_at ? ' · جُلب في ' + new Date(c.rate_fetched_at).toLocaleString('ar-KW') : '') : 'غير مثبّت'}</span></div>
+    ${isMgr() ? `<div class="row">${c.rate_locked ? `<button class="btn btn-ghost" data-act="rate-unlock">إلغاء التثبيت</button>` : `<button class="btn btn-primary" data-act="rate-fetch">جلب السعر الحالي وتثبيته</button>
+      <label class="row" style="gap:6px"><span class="lbl">أو يدوياً</span><input class="fld w-sm num" type="number" step="0.0001" min="0" aria-label="سعر الصرف يدوياً" value="${N(c.usd_rate)}" data-chg="concert" data-f="usd_rate"></label>`}</div>` : ''}
+  </section>`;
+  return `${rateCard}
+  <section class="card stack"><div class="row between"><div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button class="${k === tab ? 'on' : ''}" data-act="cost-tab" data-id="${k}">${l}</button>`).join('')}</div>
+    <button class="btn btn-primary" data-act="add-cost">+ إضافة بند</button></div>
+    <div class="tblwrap"><table class="tbl" style="min-width:900px"><thead><tr><th>البند</th><th>المبلغ</th><th>التكلفة الفعلية بالدينار</th><th>الحالة</th><th>أضافه</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="6" class="muted">لا توجد بنود بعد.</td></tr>'}</tbody></table></div>
+    <div class="row between" style="border-top:1px solid #E4E1D8;padding-top:14px;font-weight:700"><span>إجمالي القسم</span><span class="num" style="font-size:18px">${fmt(tabTotal)}</span></div>
+    <div class="muted">العمولات (منصة التذاكر وبوابة الدفع) تُحسب تلقائياً من المبيعات في شاشة التذاكر.</div></section>`;
+}
+
+/* ================= revenue ================= */
+function renderRevenue() {
+  const d = S.d, c = d.concert;
+  const cash = d.sponsors.filter(s => s.kind === 'cash').reduce((a, s) => a + toK(s.amount, s.currency, c.usd_rate), 0);
+  const inkind = d.sponsors.filter(s => s.kind === 'inkind').reduce((a, s) => a + toK(s.amount, s.currency, c.usd_rate), 0);
+  const compsTot = d.comps.reduce((a, x) => a + N(x.qty), 0);
+  const compOf = (sid, tid) => N(d.comps.find(x => x.sponsor_id === sid && x.tier_id === tid)?.qty);
+  const srows = d.sponsors.map(s => `<tr>
+    <td><input class="fld w-md" aria-label="الراعي" value="${esc(s.name)}" data-chg="sponsor" data-id="${s.id}" data-f="name"></td>
+    <td><select class="fld" style="width:100px" aria-label="النوع" data-chg="sponsor" data-id="${s.id}" data-f="kind"><option value="cash" ${s.kind === 'cash' ? 'selected' : ''}>نقدية</option><option value="inkind" ${s.kind === 'inkind' ? 'selected' : ''}>عينية</option></select></td>
+    <td><div class="row" style="gap:6px;flex-wrap:nowrap"><input class="fld w-sm num" type="number" min="0" step="any" aria-label="القيمة" value="${N(s.amount)}" data-chg="sponsor" data-id="${s.id}" data-f="amount"><select class="fld" style="width:84px" aria-label="العملة" data-chg="sponsor" data-id="${s.id}" data-f="currency"><option value="KWD" ${s.currency === 'KWD' ? 'selected' : ''}>د.ك</option><option value="USD" ${s.currency === 'USD' ? 'selected' : ''}>$</option></select></div></td>
+    <td>${s.kind === 'inkind' ? `<select class="fld w-md" aria-label="يغطي بند" data-chg="sponsor" data-id="${s.id}" data-f="covers_cost_id"><option value="">—</option>${d.costs.map(x => `<option value="${x.id}" ${x.id === s.covers_cost_id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>` : '<span class="muted">—</span>'}</td>
+    <td><div class="row" style="gap:6px;flex-wrap:nowrap">${d.tiers.map(t => `<label style="display:flex;flex-direction:column;gap:2px;font-size:11px;color:#5E5B66">${esc(t.name)}<input class="fld num" style="width:64px" type="number" min="0" value="${compOf(s.id, t.id)}" data-chg="comp" data-sid="${s.id}" data-tid="${t.id}"></label>`).join('')}</div></td>
+    <td><select class="fld w-sm" aria-label="الحالة" data-chg="sponsor" data-id="${s.id}" data-f="status">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === s.status ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
+    <td><button class="btn btn-danger btn-sm" data-act="del-sponsor" data-id="${s.id}">حذف</button></td></tr>`).join('');
+  const orows = d.others.map(o => `<tr>
+    <td><input class="fld w-md" aria-label="المصدر" value="${esc(o.name)}" data-chg="other" data-id="${o.id}" data-f="name"></td>
+    <td><input class="fld w-md" aria-label="النوع" value="${esc(o.kind)}" data-chg="other" data-id="${o.id}" data-f="kind"></td>
+    <td><input class="fld w-sm num" type="number" min="0" step="any" aria-label="المبلغ بالدينار" value="${N(o.amount)}" data-chg="other" data-id="${o.id}" data-f="amount"></td>
+    <td><select class="fld w-sm" aria-label="الحالة" data-chg="other" data-id="${o.id}" data-f="status">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === o.status ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
+    <td><button class="btn btn-danger btn-sm" data-act="del-other" data-id="${o.id}">حذف</button></td></tr>`).join('');
+  return `<div class="grid">
+    <div class="card stack" style="gap:6px"><span class="lbl">الرعاية النقدية</span><span class="num big">${fmt(cash)}</span><span class="muted">تُضاف للإيرادات وتخفض المطلوب من التذاكر</span></div>
+    <div class="card stack" style="gap:6px"><span class="lbl">الرعاية العينية</span><span class="num big">${fmt(inkind)}</span><span class="muted">تُخصم من بند التكلفة الذي تغطيه</span></div>
+    <div class="card stack" style="gap:6px"><span class="lbl">تذاكر مجانية للرعاة</span><span class="num big">${int(compsTot)}</span><span class="muted">تُخصم من المقاعد المتاحة للبيع</span></div></div>
+  <section class="card stack"><div class="row between"><div><h2 style="font-size:17px">الرعاة</h2><div class="muted">النقدية تدخل كإيراد، والعينية تُربط ببند التكلفة الذي تغطيه.${!(can('fixed') || can('logistics')) ? ' (لا ترى بنود التكاليف لربط الرعاية العينية)' : ''}</div></div><button class="btn btn-primary" data-act="add-sponsor">+ إضافة راعٍ</button></div>
+    <div class="tblwrap"><table class="tbl" style="min-width:1100px"><thead><tr><th>الراعي</th><th>النوع</th><th>القيمة</th><th>يغطي بند</th><th>تذاكر مجانية</th><th>الحالة</th><th></th></tr></thead><tbody>${srows || '<tr><td colspan="7" class="muted">لا يوجد رعاة.</td></tr>'}</tbody></table></div></section>
+  <section class="card stack"><div class="row between"><div><h2 style="font-size:17px">إيرادات أخرى</h2><div class="muted">أطعمة ومشروبات ومنتجات وغيرها، بالدينار.</div></div><button class="btn btn-ghost" data-act="add-other">+ إضافة إيراد</button></div>
+    <div class="tblwrap"><table class="tbl"><thead><tr><th>المصدر</th><th>النوع</th><th>المبلغ</th><th>الحالة</th><th></th></tr></thead><tbody>${orows || '<tr><td colspan="5" class="muted">لا توجد إيرادات أخرى.</td></tr>'}</tbody></table></div>
+    <div class="row between" style="border-top:1px solid #E4E1D8;padding-top:14px;font-weight:700"><span>الإجمالي</span><span class="num">${fmt(d.others.reduce((a, o) => a + N(o.amount), 0))}</span></div></section>`;
+}
+
+/* ================= tickets ================= */
+function renderTickets() {
+  const d = S.d, c = d.concert, r = calc(d);
+  const auto = c.pricing_mode === 'auto';
+  const rows = r.tiers.map(t => {
+    const sold = Math.round(t.sell * r.o);
+    const tier = d.tiers.find(x => x.id === t.id) || t;
+    return `<tr>
+      <td><div class="row" style="gap:8px;flex-wrap:nowrap"><input type="color" aria-label="لون الفئة" value="${esc(tier.color)}" data-chg="tier" data-id="${t.id}" data-f="color" style="width:34px;height:34px;border:0;background:none;padding:0">
+        <input class="fld w-sm" aria-label="اسم الفئة" value="${esc(tier.name)}" data-chg="tier" data-id="${t.id}" data-f="name"></div></td>
+      <td class="num">${int(t.seats)}</td><td class="num" style="color:#1E5A55">${int(t.comps)}</td><td class="num" style="font-weight:600">${int(t.sell)}</td>
+      <td>${auto ? `<input class="fld num" style="width:72px" type="number" min="0" step="0.1" aria-label="وزن الفئة" value="${N(tier.weight)}" data-chg="tier" data-id="${t.id}" data-f="weight">` : '<span class="muted">—</span>'}</td>
+      <td>${auto ? `<span class="num" style="font-weight:700;color:#3F2A75">${fmtP(t.price)}</span>` : `<input class="fld w-sm num" type="number" min="0" step="any" aria-label="سعر ${esc(tier.name)}" value="${N(tier.manual_price)}" data-chg="tier" data-id="${t.id}" data-f="manual_price">`}</td>
+      <td class="num">${int(sold)}</td><td class="num" style="font-weight:600">${fmt(t.price * sold)}</td><td class="num muted">${r.gross > 0 ? pct(t.price * t.sell / r.gross * 100) : '0%'}</td>
+      <td><button class="btn btn-danger btn-sm" data-act="del-tier" data-id="${t.id}">حذف</button></td></tr>`;
+  }).join('');
+  return `<section class="card stack">
+    <div class="row between"><div><h2 style="font-size:17px">طريقة التسعير</h2><div class="muted">${auto ? 'تحدد هامش الربح، فيقترح النظام سعر كل فئة حسب وزنها' : 'تدخل سعر كل فئة، فيحسب النظام الربح أو الخسارة'}</div></div>
+      <div class="tabs" role="tablist"><button class="${auto ? 'on' : ''}" data-act="mode" data-id="auto">تلقائي حسب الهامش</button><button class="${!auto ? 'on' : ''}" data-act="mode" data-id="manual">يدوي</button></div></div>
+    <div class="grid">
+      ${auto ? `<div class="field"><label class="lbl" for="t-m">هامش الربح المستهدف %</label><input id="t-m" class="fld w-full num" type="number" min="0" step="1" value="${N(c.target_margin)}" data-chg="concert" data-f="target_margin"></div>` : ''}
+      <div class="field"><label class="lbl" for="t-o">نسبة الإشغال المتوقعة %</label><input id="t-o" class="fld w-full num" type="number" min="1" max="100" step="1" value="${N(c.expected_occupancy)}" data-chg="concert" data-f="expected_occupancy"></div>
+      <div class="field"><label class="lbl" for="t-pf">عمولة منصة التذاكر %</label><input id="t-pf" class="fld w-full num" type="number" min="0" step="0.1" value="${N(c.platform_fee_pct)}" data-chg="concert" data-f="platform_fee_pct" ${isMgr() ? '' : 'disabled'}></div>
+      <div class="field"><label class="lbl" for="t-gf">رسوم بوابة الدفع %</label><input id="t-gf" class="fld w-full num" type="number" min="0" step="0.1" value="${N(c.gateway_fee_pct)}" data-chg="concert" data-f="gateway_fee_pct" ${isMgr() ? '' : 'disabled'}></div>
+    </div>
+    <div class="grid">
+      <div style="border:1px solid #E4E1D8;border-radius:12px;padding:14px" class="stack"><span class="lbl">التكاليف (بعد الرعاية العينية)</span><span class="num" style="font-size:20px;font-weight:700">${fmt(r.F)}</span></div>
+      <div style="border:1px solid #E4E1D8;border-radius:12px;padding:14px" class="stack"><span class="lbl">رعاية نقدية + إيرادات أخرى</span><span class="num" style="font-size:20px;font-weight:700">${fmt(r.S)}</span></div>
+      <div style="border:1px solid #E4E1D8;border-radius:12px;padding:14px" class="stack"><span class="lbl">صافي الربح عند الإشغال المتوقع</span><span class="num ${r.cur.profit >= 0 ? 'pos' : 'neg'}" style="font-size:20px;font-weight:700">${fmt(r.cur.profit)}</span></div>
+    </div>
+    ${auto && r.need <= 0 ? '<div class="note info">الرعاة والإيرادات الأخرى تغطي التكاليف والهامش المطلوب بالكامل، لذلك السعر المقترح صفر. استخدم التسعير اليدوي.</div>' : ''}
+    ${r.sellTot === 0 ? '<div class="note warn">لا توجد مقاعد مرتبطة بالفئات. أضف خانات المسرح واربطها بالفئات من شاشة «المسرح والمقاعد».</div>' : ''}
+  </section>
+  <section class="card stack"><div class="row between"><h2 style="font-size:17px">فئات التذاكر</h2><button class="btn btn-ghost" data-act="add-tier">+ إضافة فئة</button></div>
+    <div class="tblwrap"><table class="tbl" style="min-width:1100px"><thead><tr><th>الفئة</th><th>المقاعد</th><th>للرعاة</th><th>للبيع</th><th>الوزن</th><th>سعر التذكرة</th><th>المتوقع بيعه</th><th>الإيراد المتوقع</th><th>النسبة</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="row between muted"><span>إجمالي المقاعد: <b class="num">${int(r.seatsAll)}</b> · للبيع: <b class="num">${int(r.sellTot)}</b></span><span>الوزن يحدد نسبة سعر الفئة إلى العادية (مثلاً VIP = 4 أضعاف)</span></div></section>`;
+}
+
+/* ================= scenarios ================= */
+function renderScenarios() {
+  const d = S.d, r = calc(d);
+  const list = d.scenarios.map(s => ({ s, x: r.at(N(s.occupancy) / 100) })).sort((a, b) => b.s.occupancy - a.s.occupancy);
+  const maxAbs = Math.max(1, ...list.map(o => Math.abs(o.x.profit)));
+  const items = list.map(({ s, x }) => `<div class="stack" style="gap:10px;padding-bottom:16px;border-bottom:1px solid #EFECE5">
+    <div class="row between"><div class="row" style="gap:10px">${isMgr() ? `<input class="fld w-sm" aria-label="اسم السيناريو" value="${esc(s.label)}" data-chg="scen" data-id="${s.id}" data-f="label"><label class="row" style="gap:6px"><span class="lbl">إشغال %</span><input class="fld num" style="width:80px" type="number" min="0" max="100" value="${N(s.occupancy)}" data-chg="scen" data-id="${s.id}" data-f="occupancy"></label>` : `<span style="font-weight:700;font-size:16px">${esc(s.label)}</span><span class="muted">إشغال ${pct(s.occupancy)}</span>`}
+      <span class="muted">${int(x.sold)} تذكرة</span></div>
+      <div class="row"><span class="num ${x.profit >= 0 ? 'pos' : 'neg'}" style="font-size:20px;font-weight:700">${fmt(x.profit)}</span>${isMgr() ? `<button class="btn btn-danger btn-sm" data-act="del-scen" data-id="${s.id}" aria-label="حذف السيناريو">حذف</button>` : ''}</div></div>
+    <div class="bar" style="height:12px"><div style="width:${Math.max(2, Math.abs(x.profit) / maxAbs * 100)}%;background:${x.profit >= 0 ? '#1D5C8C' : '#D9783F'}"></div></div>
+    <div class="row muted" style="gap:18px"><span>الإيرادات: <b class="num" style="color:#1B1A22">${fmt(x.rev)}</b></span><span>التكاليف: <b class="num" style="color:#1B1A22">${fmt(x.cost)}</b></span><span>الهامش: <b class="num" style="color:#1B1A22">${pct(x.margin)}</b></span></div></div>`).join('');
+  return `<section class="card stack"><div class="row between"><div><h2 style="font-size:17px">السيناريوهات من الأفضل إلى الأسوأ</h2><div class="muted">حسب أسعار التذاكر الحالية.</div></div>${isMgr() ? '<button class="btn btn-ghost" data-act="add-scen">+ سيناريو</button>' : ''}</div>
+    ${items || '<div class="muted">لا توجد سيناريوهات.</div>'}
+    <div class="note info row between"><span>نقطة التعادل</span><span class="num">إشغال ${beLabel(r)}${r.beSeats != null && r.be > 0 && r.be <= 1 ? ' · ' + int(r.beSeats) + ' تذكرة' : ''}</span></div></section>`;
+}
+
+/* ================= team ================= */
+function renderTeam() {
+  const t = S.team; if (!t) return '<div class="card">…</div>';
+  const has = (uid, sec) => t.perms.some(p => p.user_id === uid && p.section === sec);
+  const members = t.profs.map(p => `<div class="row between" style="padding:14px 0;border-bottom:1px solid #EFECE5">
+    <div class="row" style="gap:12px;min-width:220px"><div class="avatar" style="background:#EEE9F8;color:#3F2A75">${esc((p.full_name || p.email).charAt(0))}</div>
+      <div><div class="row" style="gap:6px"><input class="fld w-md" aria-label="الاسم" value="${esc(p.full_name)}" data-chg="prof-name" data-id="${p.id}"></div><div class="muted" dir="ltr" style="text-align:right">${esc(p.email)}</div></div></div>
+    ${p.role === 'manager' ? '<span class="chip" style="background:#EEE9F8;color:#3F2A75">المدير · كل الصلاحيات + التصدير</span>' :
+      `<div class="row" style="gap:6px">${SECTIONS.map(([k, l]) => `<button class="perm ${has(p.id, k) ? 'on' : ''}" aria-pressed="${has(p.id, k)}" data-act="perm" data-id="${p.id}" data-sec="${k}">${l}</button>`).join('')}
+       <button class="btn btn-danger btn-sm" data-act="del-member" data-id="${p.id}">إزالة</button></div>`}</div>`).join('');
+  const invs = t.invs.map(i => `<div class="row between" style="padding:10px 0;border-bottom:1px solid #EFECE5"><div><b>${esc(i.full_name || '—')}</b> <span class="muted" dir="ltr">${esc(i.email)}</span></div><button class="btn btn-ghost btn-sm" data-act="del-inv" data-id="${esc(i.email)}">إلغاء الدعوة</button></div>`).join('');
+  return `<section class="card stack"><div><h2 style="font-size:17px">الفريق والصلاحيات</h2><div class="muted">اضغط على القسم لمنح المساعد صلاحية رؤيته وتعديله، واضغط مرة أخرى لسحبها.</div></div>${members}</section>
+  <section class="card stack"><div><h2 style="font-size:17px">دعوة مساعد</h2><div class="muted">أضف بريده هنا، ثم يفتح رابط التطبيق ويختار «حساب جديد» بنفس البريد. بعد انضمامه امنحه الصلاحيات من الأعلى.</div></div>
+    <form class="row" data-form="invite"><input name="name" class="fld w-md" placeholder="الاسم" aria-label="اسم المساعد"><input name="email" type="email" required class="fld" style="width:240px" placeholder="email@example.com" aria-label="البريد الإلكتروني" dir="ltr"><button class="btn btn-primary" type="submit">إضافة دعوة</button></form>
+    ${invs ? `<div><div class="lbl" style="margin-bottom:4px">دعوات بانتظار التسجيل</div>${invs}</div>` : ''}</section>`;
+}
+
+/* ================= export ================= */
+function renderExport() {
+  return `<section class="card stack" style="border-color:#CFC4EA" aria-label="تصدير التقرير"><div class="row between"><h2 style="font-size:17px">تصدير التقرير</h2><button class="btn btn-ghost btn-sm" data-act="export-close">إغلاق</button></div>
+  <div class="grid-wide">
+    <div style="border:1px solid #E4E1D8;border-radius:12px;padding:16px" class="stack" ><b>التقرير الداخلي الكامل</b><span class="muted">كل البنود والتكاليف والرعاة والأرباح والسيناريوهات والخانات.</span><div class="row"><button class="btn btn-ghost" data-act="exp" data-id="full-pdf">PDF</button><button class="btn btn-ghost" data-act="exp" data-id="full-xlsx">Excel</button></div></div>
+    <div style="border:1px solid #E4E1D8;border-radius:12px;padding:16px" class="stack"><b>التقرير المختصر للرعاة والشركاء</b><span class="muted">معلومات الحفلة والمسرح وفئات التذاكر وأسعارها، بدون التكاليف والأرباح.</span><div class="row"><button class="btn btn-ghost" data-act="exp" data-id="short-pdf">PDF</button><button class="btn btn-ghost" data-act="exp" data-id="short-xlsx">Excel</button></div></div>
+  </div><div class="muted">PDF يفتح نافذة الطباعة، اختر «حفظ كـ PDF».</div></section>`;
+}
+function reportData() {
+  const d = S.d, c = d.concert, r = calc(d);
+  const rate = c.usd_rate;
+  const cov = (id) => d.sponsors.filter(s => s.kind === 'inkind' && s.covers_cost_id === id).reduce((a, s) => a + toK(s.amount, s.currency, rate), 0);
+  const costs = d.costs.map(x => { const k = toK(x.amount, x.currency, rate); const cv = Math.min(k, cov(x.id)); return { section: x.section === 'fixed' ? 'ثابتة' : 'لوجستية', name: x.name, amount: N(x.amount), currency: x.currency === 'USD' ? '$' : 'د.ك', kwd: k, covered: cv, eff: k - cv, status: STATUS[x.status], by: who(x.created_by) }; });
+  const tierName = (id) => d.tiers.find(t => t.id === id)?.name || '—';
+  const sponsors = d.sponsors.map(s => ({ name: s.name, kind: s.kind === 'cash' ? 'نقدية' : 'عينية', amount: N(s.amount), currency: s.currency === 'USD' ? '$' : 'د.ك', kwd: toK(s.amount, s.currency, rate), covers: d.costs.find(x => x.id === s.covers_cost_id)?.name || '', comps: d.comps.filter(x => x.sponsor_id === s.id && N(x.qty) > 0).map(x => x.qty + ' ' + tierName(x.tier_id)).join(' + '), status: STATUS[s.status] }));
+  const scen = d.scenarios.map(s => ({ label: s.label, ...r.at(N(s.occupancy) / 100) })).sort((a, b) => b.occ - a.occ);
+  const zones = d.zones.map(z => ({ name: z.name, pos: POS[z.position], tier: tierName(z.tier_id), rows: N(z.rows), per: N(z.seats_per_row), blocked: N(z.blocked), seats: zSeats(z) }));
+  return { c, r, costs, sponsors, scen, zones, others: d.others };
+}
+function sheetFrom(XL, rows) { const ws = XL.utils.aoa_to_sheet(rows); ws['!cols'] = (rows[0] || []).map(() => ({ wch: 20 })); return ws; }
+async function exportXlsx(full) {
+  const XL = await getXLSX(); const x = reportData(); const { c, r } = x;
+  const wb = XL.utils.book_new(); wb.Workbook = { Views: [{ RTL: true }] };
+  const info = [['الحفلة', c.name], ['التاريخ', c.event_date || ''], ['المكان', c.location || ''], ['المسرح', c.venue_name || ''], ['السعة المسموحة', N(c.capacity)], ['إجمالي المقاعد', r.seatsAll], ['المقاعد المتاحة للبيع', r.sellTot]];
+  if (full) info.push([], ['سعر صرف الدولار', N(c.usd_rate)], ['التكاليف الثابتة (د.ك)', r.fixed], ['التكاليف اللوجستية (د.ك)', r.logistics], ['الرعاية العينية (د.ك)', r.inkind], ['الرعاية النقدية (د.ك)', r.cash], ['إيرادات أخرى (د.ك)', r.other],
+    ['الإشغال المتوقع %', N(c.expected_occupancy)], ['إجمالي الإيرادات المتوقعة', r.cur.rev], ['إجمالي التكاليف المتوقعة', r.cur.cost], ['صافي الربح المتوقع', r.cur.profit], ['نقطة التعادل', beLabel(r)]);
+  XL.utils.book_append_sheet(wb, sheetFrom(XL, info), 'ملخص');
+  XL.utils.book_append_sheet(wb, sheetFrom(XL, [['الفئة', 'المقاعد', ...(full ? ['للرعاة', 'للبيع'] : []), 'سعر التذكرة (د.ك)'], ...r.tiers.map(t => [t.name, t.seats, ...(full ? [t.comps, t.sell] : []), t.price])]), 'التذاكر');
+  XL.utils.book_append_sheet(wb, sheetFrom(XL, [['الخانة', 'الموقع', 'الفئة', 'الصفوف', 'مقاعد/صف', 'محجوب', 'المقاعد'], ...x.zones.map(z => [z.name, z.pos, z.tier, z.rows, z.per, z.blocked, z.seats])]), 'الخانات');
+  if (full) {
+    XL.utils.book_append_sheet(wb, sheetFrom(XL, [['القسم', 'البند', 'المبلغ', 'العملة', 'بالدينار', 'مغطى برعاية', 'التكلفة الفعلية', 'الحالة', 'أضافه'], ...x.costs.map(k => [k.section, k.name, k.amount, k.currency, k.kwd, k.covered, k.eff, k.status, k.by])]), 'التكاليف');
+    XL.utils.book_append_sheet(wb, sheetFrom(XL, [['الراعي', 'النوع', 'القيمة', 'العملة', 'بالدينار', 'يغطي بند', 'تذاكر مجانية', 'الحالة'], ...x.sponsors.map(s => [s.name, s.kind, s.amount, s.currency, s.kwd, s.covers, s.comps, s.status])]), 'الرعاة');
+    XL.utils.book_append_sheet(wb, sheetFrom(XL, [['المصدر', 'النوع', 'المبلغ (د.ك)', 'الحالة'], ...x.others.map(o => [o.name, o.kind, N(o.amount), STATUS[o.status]])]), 'إيرادات أخرى');
+    XL.utils.book_append_sheet(wb, sheetFrom(XL, [['السيناريو', 'الإشغال %', 'التذاكر المبيعة', 'الإيرادات', 'التكاليف', 'صافي الربح', 'الهامش %'], ...x.scen.map(s => [s.label, Math.round(s.occ * 100), s.sold, Math.round(s.rev), Math.round(s.cost), Math.round(s.profit), Math.round(s.margin)])]), 'السيناريوهات');
+  } else {
+    XL.utils.book_append_sheet(wb, sheetFrom(XL, [['الراعي', 'نوع الرعاية'], ...x.sponsors.map(s => [s.name, s.kind])]), 'الرعاة');
+  }
+  XL.writeFile(wb, `${c.name} - ${full ? 'تقرير داخلي' : 'تقرير مختصر'}.xlsx`);
+}
+function exportPdf(full) {
+  const x = reportData(); const { c, r } = x;
+  const tbl = (head, rows) => `<table><thead><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(rw => `<tr>${rw.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const kv = (rows) => `<table class="kv">${rows.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</table>`;
+  let html = `<h1>${esc(c.name)}</h1><div class="sub">${esc(full ? 'تقرير داخلي كامل' : 'تقرير مختصر للرعاة والشركاء')} · ${new Date().toLocaleDateString('ar-KW')}</div>`;
+  html += `<h2>معلومات الحفلة</h2>` + kv([['التاريخ', c.event_date || '—'], ['المكان', c.location || '—'], ['المسرح', c.venue_name || '—'], ['السعة المسموحة', int(c.capacity)], ['إجمالي المقاعد', int(r.seatsAll)], ['المتاح للبيع', int(r.sellTot)]]);
+  if (full) {
+    html += `<h2>الملخص المالي</h2>` + kv([['التكاليف الثابتة', fmt(r.fixed)], ['التكاليف اللوجستية', fmt(r.logistics)], ['الرعاية العينية (موفّرة)', fmt(r.inkind)], ['الرعاية النقدية', fmt(r.cash)], ['إيرادات أخرى', fmt(r.other)], ['الإشغال المتوقع', pct(N(c.expected_occupancy))], ['الإيرادات المتوقعة', fmt(r.cur.rev)], ['التكاليف المتوقعة (شامل العمولات)', fmt(r.cur.cost)], ['صافي الربح المتوقع', fmt(r.cur.profit)], ['نقطة التعادل', beLabel(r)], ['سعر صرف الدولار', N(c.usd_rate).toFixed(4)]]);
+  }
+  html += `<h2>فئات التذاكر</h2>` + tbl(['الفئة', 'المقاعد', ...(full ? ['للرعاة', 'للبيع'] : []), 'السعر'], r.tiers.map(t => [t.name, int(t.seats), ...(full ? [int(t.comps), int(t.sell)] : []), fmtP(t.price)]));
+  html += `<h2>خانات المسرح</h2>` + tbl(['الخانة', 'الموقع', 'الفئة', 'المقاعد'], x.zones.map(z => [z.name, z.pos, z.tier, int(z.seats)]));
+  if (full) {
+    html += `<h2>التكاليف</h2>` + tbl(['القسم', 'البند', 'المبلغ', 'التكلفة الفعلية', 'الحالة'], x.costs.map(k => [k.section, k.name, k.amount.toLocaleString('en-US') + ' ' + k.currency, fmt(k.eff) + (k.covered > 0 ? ' (مغطى ' + fmt(k.covered) + ')' : ''), k.status]));
+    html += `<h2>الرعاة</h2>` + tbl(['الراعي', 'النوع', 'القيمة', 'يغطي', 'تذاكر مجانية', 'الحالة'], x.sponsors.map(s => [s.name, s.kind, fmt(s.kwd), s.covers || '—', s.comps || '—', s.status]));
+    html += `<h2>إيرادات أخرى</h2>` + tbl(['المصدر', 'النوع', 'المبلغ', 'الحالة'], x.others.map(o => [o.name, o.kind, fmt(o.amount), STATUS[o.status]]));
+    html += `<h2>السيناريوهات</h2>` + tbl(['السيناريو', 'الإشغال', 'التذاكر', 'الإيرادات', 'التكاليف', 'صافي الربح'], x.scen.map(s => [s.label, pct(s.occ * 100), int(s.sold), fmt(s.rev), fmt(s.cost), fmt(s.profit)]));
+  } else if (x.sponsors.length) {
+    html += `<h2>الرعاة</h2>` + tbl(['الراعي', 'نوع الرعاية'], x.sponsors.map(s => [s.name, s.kind]));
+  }
+  const doc = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${esc(c.name)}</title><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet"><style>
+    body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#1B1A22;margin:28px;font-size:12pt}h1{font-size:22pt;margin:0}.sub{color:#5E5B66;margin:4px 0 18px}h2{font-size:14pt;margin:22px 0 8px;color:#3F2A75;border-bottom:2px solid #EEE9F8;padding-bottom:4px}
+    table{width:100%;border-collapse:collapse;margin-bottom:8px;page-break-inside:auto}tr{page-break-inside:avoid}th,td{border:1px solid #E4E1D8;padding:6px 8px;text-align:right;font-size:11pt}thead th{background:#F5F4F0}.kv th{width:40%;background:#FAF9F6;font-weight:600}
+    @page{size:A4;margin:14mm}</style></head><body>${html}</body></html>`;
+  const f = document.createElement('iframe');
+  f.style.cssText = 'position:fixed;width:0;height:0;border:0;left:0;bottom:0';
+  document.body.appendChild(f);
+  f.contentDocument.open(); f.contentDocument.write(doc); f.contentDocument.close();
+  const go2 = () => { f.contentWindow.focus(); f.contentWindow.print(); setTimeout(() => f.remove(), 2000); };
+  (f.contentDocument.fonts?.ready || Promise.resolve()).then(() => setTimeout(go2, 400));
+}
+
+/* ================= overlay layer (modals & viewer) ================= */
+function renderLayer() {
+  const m = S.ui.modal, v = S.ui.viewer;
+  if (v) {
+    const z = v.zoom || 1;
+    layer.innerHTML = `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(v.title)}"><div class="viewer">
+      <div class="row between" style="padding:14px 18px;border-bottom:1px solid #E4E1D8"><div><div style="font-weight:700;font-size:16px">${esc(v.title)}</div><div class="muted">${esc(v.name || '')}</div></div>
+      <div class="row" style="gap:6px">${v.isPdf ? '' : `<button class="btn btn-ghost" aria-label="تصغير" data-act="zoom" data-id="-0.25">−</button><button class="btn btn-ghost num" data-act="zoom" data-id="0" style="min-width:72px">${Math.round(z * 100)}%</button><button class="btn btn-ghost" aria-label="تكبير" data-act="zoom" data-id="0.25">+</button>`}
+      <a class="btn btn-ghost" href="${esc(v.url)}" target="_blank" rel="noopener">فتح في نافذة</a><button class="btn btn-primary" data-act="viewer-close">إغلاق</button></div></div>
+      <div class="body"><div class="pic">${v.isPdf ? `<iframe src="${esc(v.url)}" title="المخطط" style="width:100%;height:100%;border:0;background:#fff"></iframe>` : `<img src="${esc(v.url)}" alt="صورة المخطط" style="width:${Math.round(z * 100)}%;max-width:none;display:block;margin:0 auto">`}</div>
+      <aside aria-label="الخانات"><b>الخانات</b>${(v.zones || []).map(zz => `<div style="border:1px solid #EFECE5;border-radius:10px;padding:10px 12px" class="stack" ><div class="row between" style="gap:8px"><span class="row" style="gap:6px;font-weight:600"><span class="swatch" style="background:${esc(zz.color)}"></span>${esc(zz.name)}</span>${zz.conf ? `<span class="chip cf-${zz.conf}">${CONF[zz.conf]}</span>` : ''}</div><div class="num muted" dir="ltr" style="text-align:right">${zz.rows} × ${zz.per}${zz.blocked ? ' − ' + zz.blocked : ''} = ${int(zz.seats)}</div><div class="muted" style="font-size:12px">${esc(zz.tier)} · ${POS[zz.position] || ''}</div></div>`).join('') || '<span class="muted">لا توجد خانات</span>'}</aside></div></div></div>`;
+    return;
+  }
+  if (m && m.kind === 'concert') {
+    const c = m.data || {};
+    layer.innerHTML = `<div class="overlay" role="dialog" aria-modal="true" aria-label="بيانات الحفلة"><form class="modal" data-form="concert">
+      <h2 style="font-size:18px">${m.data ? 'بيانات الحفلة' : 'حفلة جديدة'}</h2>
+      <div class="field"><label class="lbl" for="c-name">اسم الحفلة</label><input id="c-name" name="name" class="fld w-full" required value="${esc(c.name || '')}"></div>
+      <div class="grid"><div class="field"><label class="lbl" for="c-date">التاريخ</label><input id="c-date" name="event_date" type="date" class="fld w-full" value="${esc(c.event_date || '')}"></div>
+      <div class="field"><label class="lbl" for="c-loc">المدينة / المكان</label><input id="c-loc" name="location" class="fld w-full" value="${esc(c.location || 'الكويت')}"></div></div>
+      ${m.data ? `<div class="grid"><div class="field"><label class="lbl" for="c-st">الحالة</label><select id="c-st" name="status" class="fld w-full">${Object.entries(CSTAT).map(([k, v]) => `<option value="${k}" ${k === c.status ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+      <div class="field"><label class="lbl" for="c-ap">الربح الفعلي بعد الحفلة (اختياري)</label><input id="c-ap" name="actual_profit" type="number" step="any" class="fld w-full num" value="${c.actual_profit ?? ''}"></div></div>` : ''}
+      <div class="row"><button class="btn btn-primary" type="submit">حفظ</button><button class="btn btn-ghost" type="button" data-act="modal-close">إلغاء</button></div></form></div>`;
+    return;
+  }
+  layer.innerHTML = '';
+}
+
+/* ================= actions ================= */
+const A = {};
+A['go'] = (el) => run(() => go(el.dataset.id));
+A['reload'] = () => run(async () => { await loadConcert(); render(); toast('تم التحديث'); });
+A['logout'] = () => run(async () => { await sb.auth.signOut(); });
+A['auth-mode'] = (el) => { S.ui.authMode = el.dataset.id; render(); };
+A['modal-close'] = () => { S.ui.modal = null; renderLayer(); };
+A['viewer-close'] = () => { S.ui.viewer = null; renderLayer(); };
+A['zoom'] = (el) => { const dz = Number(el.dataset.id); S.ui.viewer.zoom = dz === 0 ? 1 : Math.min(4, Math.max(0.5, (S.ui.viewer.zoom || 1) + dz)); renderLayer(); };
+A['export-open'] = () => { S.ui.exportOpen = true; render(); };
+A['export-close'] = () => { S.ui.exportOpen = false; render(); };
+A['exp'] = (el) => run(async () => { const [kind, fmtx] = el.dataset.id.split('-'); if (fmtx === 'pdf') exportPdf(kind === 'full'); else await exportXlsx(kind === 'full'); });
+
+A['new-concert'] = () => { S.ui.modal = { kind: 'concert' }; renderLayer(); };
+A['edit-concert'] = () => { S.ui.modal = { kind: 'concert', data: S.d.concert }; renderLayer(); };
+A['open-concert'] = (el) => run(async () => { S.cid = el.dataset.id; await loadConcert(); S.screen = firstScreenFor(); render(); });
+A['del-concert'] = (el) => run(async () => {
+  const c = S.concerts.find(x => x.id === el.dataset.id);
+  if (!confirm(`حذف «${c.name}» وكل بياناتها نهائياً؟`)) return;
+  await q(sb.from('concerts').delete().eq('id', c.id));
+  if (S.cid === c.id) { S.cid = null; S.d = null; }
+  await loadConcerts(); render(); toast('تم الحذف');
+});
+A['dup-concert'] = (el) => run(async () => {
+  const src = S.concerts.find(x => x.id === el.dataset.id);
+  const keep = ['event_date', 'location', 'venue_id', 'venue_name', 'capacity', 'chart_path', 'chart_name', 'usd_rate', 'pricing_mode', 'target_margin', 'expected_occupancy', 'platform_fee_pct', 'gateway_fee_pct'];
+  const row = { name: src.name + ' (نسخة)' }; keep.forEach(k => row[k] = src[k]);
+  const nc = await q(sb.from('concerts').insert(row).select().single());
+  const cid = src.id;
+  const [tiers, zones, costs, sponsors, others, scen] = await Promise.all([
+    q(sb.from('ticket_tiers').select('*').eq('concert_id', cid)), q(sb.from('concert_zones').select('*').eq('concert_id', cid)),
+    q(sb.from('cost_items').select('*').eq('concert_id', cid)), q(sb.from('sponsors').select('*').eq('concert_id', cid)),
+    q(sb.from('other_revenues').select('*').eq('concert_id', cid)), q(sb.from('scenarios').select('*').eq('concert_id', cid))]);
+  const comps = sponsors.length ? await q(sb.from('sponsor_comps').select('*').in('sponsor_id', sponsors.map(s => s.id))) : [];
+  await q(sb.from('ticket_tiers').delete().eq('concert_id', nc.id));
+  await q(sb.from('scenarios').delete().eq('concert_id', nc.id));
+  const strip = (o, ...ks) => { const r = { ...o }; ['id', 'created_at', 'created_by', ...ks].forEach(k => delete r[k]); return r; };
+  const tMap = {};
+  for (const t of tiers) { const n = await q(sb.from('ticket_tiers').insert({ ...strip(t), concert_id: nc.id }).select('id').single()); tMap[t.id] = n.id; }
+  if (zones.length) await q(sb.from('concert_zones').insert(zones.map(z => ({ ...strip(z), concert_id: nc.id, tier_id: tMap[z.tier_id] || null }))));
+  const cMap = {};
+  for (const x of costs) { const n = await q(sb.from('cost_items').insert({ ...strip(x), concert_id: nc.id }).select('id').single()); cMap[x.id] = n.id; }
+  const sMap = {};
+  for (const s of sponsors) { const n = await q(sb.from('sponsors').insert({ ...strip(s), concert_id: nc.id, covers_cost_id: cMap[s.covers_cost_id] || null }).select('id').single()); sMap[s.id] = n.id; }
+  const cps = comps.filter(x => sMap[x.sponsor_id] && tMap[x.tier_id]).map(x => ({ sponsor_id: sMap[x.sponsor_id], tier_id: tMap[x.tier_id], qty: x.qty }));
+  if (cps.length) await q(sb.from('sponsor_comps').insert(cps));
+  if (others.length) await q(sb.from('other_revenues').insert(others.map(o => ({ ...strip(o), concert_id: nc.id }))));
+  if (scen.length) await q(sb.from('scenarios').insert(scen.map(s => ({ ...strip(s), concert_id: nc.id }))));
+  await loadConcerts(); render(); toast('تم إنشاء نسخة من الحفلة');
+});
+
+// costs
+A['cost-tab'] = (el) => { S.ui.costTab = el.dataset.id; render(); };
+A['add-cost'] = () => run(async () => { await q(sb.from('cost_items').insert({ concert_id: S.cid, section: S.ui.costTab, name: 'بند جديد', amount: 0, currency: 'KWD' })); await refresh(); });
+A['del-cost'] = (el) => run(async () => { if (!confirm('حذف هذا البند؟')) return; await q(sb.from('cost_items').delete().eq('id', el.dataset.id)); await refresh(); });
+A['rate-fetch'] = () => run(async () => {
+  toast('جاري جلب سعر الصرف…');
+  const { data, error } = await sb.functions.invoke('fx-rate');
+  if (error || !data?.rate) throw new Error('تعذر جلب سعر الصرف الآن، أدخله يدوياً');
+  await q(sb.from('concerts').update({ usd_rate: data.rate, rate_locked: true, rate_fetched_at: new Date().toISOString() }).eq('id', S.cid));
+  await refresh(); toast('تم جلب السعر وتثبيته: ' + Number(data.rate).toFixed(4));
+});
+A['rate-unlock'] = () => run(async () => { await q(sb.from('concerts').update({ rate_locked: false }).eq('id', S.cid)); await refresh(); });
+
+// revenue
+A['add-sponsor'] = () => run(async () => { await q(sb.from('sponsors').insert({ concert_id: S.cid, name: 'راعٍ جديد', kind: 'cash', amount: 0 })); await refresh(); });
+A['del-sponsor'] = (el) => run(async () => { if (!confirm('حذف هذا الراعي؟')) return; await q(sb.from('sponsors').delete().eq('id', el.dataset.id)); await refresh(); });
+A['add-other'] = () => run(async () => { await q(sb.from('other_revenues').insert({ concert_id: S.cid, name: 'إيراد جديد', amount: 0 })); await refresh(); });
+A['del-other'] = (el) => run(async () => { await q(sb.from('other_revenues').delete().eq('id', el.dataset.id)); await refresh(); });
+
+// tickets
+A['mode'] = (el) => run(async () => {
+  const mode = el.dataset.id; const upd = { pricing_mode: mode };
+  if (mode === 'manual' && S.d.concert.pricing_mode === 'auto') {
+    const r = calc(S.d);
+    await Promise.all(r.tiers.map(t => q(sb.from('ticket_tiers').update({ manual_price: t.price }).eq('id', t.id))));
+  }
+  await q(sb.from('concerts').update(upd).eq('id', S.cid)); await refresh();
+});
+A['add-tier'] = () => run(async () => { await q(sb.from('ticket_tiers').insert({ concert_id: S.cid, name: 'فئة جديدة', weight: 1, sort: S.d.tiers.length + 1 })); await refresh(); });
+A['del-tier'] = (el) => run(async () => { if (!confirm('حذف هذه الفئة؟ الخانات المرتبطة بها ستصبح بدون فئة.')) return; await q(sb.from('ticket_tiers').delete().eq('id', el.dataset.id)); await refresh(); });
+
+// scenarios
+A['add-scen'] = () => run(async () => { await q(sb.from('scenarios').insert({ concert_id: S.cid, label: 'سيناريو جديد', occupancy: 50, sort: S.d.scenarios.length + 1 })); await refresh(); });
+A['del-scen'] = (el) => run(async () => { await q(sb.from('scenarios').delete().eq('id', el.dataset.id)); await refresh(); });
+
+// venue
+A['add-zone'] = () => run(async () => { await q(sb.from('concert_zones').insert({ concert_id: S.cid, name: 'خانة جديدة', position: 'back', tier_id: S.d.tiers[S.d.tiers.length - 1]?.id || null, rows: 10, seats_per_row: 20, sort: S.d.zones.length + 1 })); await refresh(); });
+A['del-zone'] = (el) => run(async () => { await q(sb.from('concert_zones').delete().eq('id', el.dataset.id)); await refresh(); });
+async function ensureTierIds(names) {
+  const map = Object.fromEntries(S.d.tiers.map(t => [t.name, t.id]));
+  for (const n of names) {
+    if (n && !map[n]) {
+      const t = await q(sb.from('ticket_tiers').insert({ concert_id: S.cid, name: n, weight: 1, sort: Object.keys(map).length + 1 }).select().single());
+      map[n] = t.id;
+    }
+  }
+  return map;
+}
+async function replaceZones(list) {
+  const map = await ensureTierIds([...new Set(list.map(z => z.tier).filter(Boolean))]);
+  await q(sb.from('concert_zones').delete().eq('concert_id', S.cid));
+  if (list.length) await q(sb.from('concert_zones').insert(list.map((z, i) => ({ concert_id: S.cid, name: z.name || 'خانة', position: z.position || 'middle', tier_id: map[z.tier] || null, rows: N(z.rows), seats_per_row: N(z.seats_per_row), blocked: N(z.blocked), sort: i + 1 }))));
+}
+async function useVenue(vid) {
+  const v = S.lib.find(x => x.id === vid); if (!v) return;
+  if (S.d.zones.length && !confirm(`تحميل «${v.name}» سيستبدل خانات الحفلة الحالية. متابعة؟`)) return false;
+  await replaceZones(Array.isArray(v.zones) ? v.zones : []);
+  await q(sb.from('concerts').update({ venue_id: v.id, venue_name: v.name, capacity: v.capacity, chart_path: v.chart_path, chart_name: v.chart_name }).eq('id', S.cid));
+  return true;
+}
+A['use-venue'] = (el) => run(async () => { if (await useVenue(el.dataset.id) === false) return; S.screen = 'venue'; await refresh(); toast('تم تحميل المسرح'); });
+A['save-to-lib'] = () => run(async () => {
+  const c = S.d.concert;
+  const name = prompt('اسم التصميم في المكتبة:', (c.venue_name || 'تصميم مسرح') + (c.venue_id ? ' (معدّل)' : ''));
+  if (!name) return;
+  const zones = S.d.zones.map(z => ({ name: z.name, position: z.position, tier: tierById(z.tier_id)?.name || '', rows: N(z.rows), seats_per_row: N(z.seats_per_row), blocked: N(z.blocked) }));
+  const v = await q(sb.from('venues').insert({ name, capacity: N(c.capacity), chart_path: c.chart_path, chart_name: c.chart_name, zones }).select().single());
+  await q(sb.from('concerts').update({ venue_id: v.id }).eq('id', S.cid));
+  await loadLib(); await refresh(); toast('تم الحفظ في المكتبة');
+});
+A['del-venue'] = (el) => run(async () => { const v = S.lib.find(x => x.id === el.dataset.id); if (!confirm(`حذف «${v.name}» من المكتبة؟`)) return; await q(sb.from('venues').delete().eq('id', v.id)); await loadLib(); render(); });
+async function signed(path) { const { data, error } = await sb.storage.from('charts').createSignedUrl(path, 3600); if (error) throw error; return data.signedUrl; }
+A['view-concert-chart'] = () => run(async () => {
+  const c = S.d.concert;
+  S.ui.viewer = { title: 'المخطط المعتمد', name: c.chart_name, url: await signed(c.chart_path), isPdf: /\.pdf$/i.test(c.chart_path), zoom: 1,
+    zones: S.d.zones.map(z => ({ name: z.name, rows: N(z.rows), per: N(z.seats_per_row), blocked: N(z.blocked), seats: zSeats(z), tier: tierById(z.tier_id)?.name || '—', color: tierById(z.tier_id)?.color || '#E8E5DE', position: z.position })) };
+  renderLayer();
+});
+A['view-lib-chart'] = (el) => run(async () => {
+  const v = S.lib.find(x => x.id === el.dataset.id);
+  S.ui.viewer = { title: v.name, name: v.chart_name, url: await signed(v.chart_path), isPdf: /\.pdf$/i.test(v.chart_path), zoom: 1,
+    zones: (v.zones || []).map(z => ({ name: z.name, rows: N(z.rows), per: N(z.seats_per_row), blocked: N(z.blocked), seats: zSeats(z), tier: z.tier, color: S.d?.tiers.find(t => t.name === z.tier)?.color || '#E8E5DE', position: z.position })) };
+  renderLayer();
+});
+
+// uploader
+A['start-upload'] = (el) => {
+  const target = el.dataset.id;
+  const tierNames = S.d ? S.d.tiers.map(t => t.name) : DEFAULT_TIERS;
+  S.ui.upload = { target, stage: 'idle', zones: [], tierNames: tierNames.length ? tierNames : DEFAULT_TIERS, newName: 'تصميم مسرح جديد', newCap: 1000 };
+  render();
+};
+A['up-cancel'] = () => { if (S.ui.upload?.previewUrl) URL.revokeObjectURL(S.ui.upload.previewUrl); S.ui.upload = null; render(); };
+A['up-manual'] = () => { const u = S.ui.upload; u.stage = 'done'; u.zones = [{ name: 'خانة 1', position: 'front', tier: u.tierNames[0], rows: 5, seats_per_row: 20, blocked: 0 }]; render(); };
+A['up-add'] = () => { const u = S.ui.upload; u.zones.push({ name: 'خانة جديدة', position: 'back', tier: u.tierNames[u.tierNames.length - 1], rows: 10, seats_per_row: 20, blocked: 0 }); render(); };
+A['up-del'] = (el) => { S.ui.upload.zones.splice(Number(el.dataset.i), 1); render(); };
+A['up-view'] = () => {
+  const u = S.ui.upload;
+  S.ui.viewer = { title: 'مراجعة المخطط المرفوع', name: u.fileName, url: u.previewUrl, isPdf: u.isPdf, zoom: 1,
+    zones: u.zones.map(z => ({ name: z.name, rows: N(z.rows), per: N(z.seats_per_row), blocked: N(z.blocked), seats: zSeats(z), tier: z.tier, color: S.d?.tiers.find(t => t.name === z.tier)?.color || '#E8E5DE', position: z.position, conf: z.confidence })) };
+  renderLayer();
+};
+A['up-apply'] = () => run(async () => {
+  const u = S.ui.upload;
+  if (u.target === 'library') {
+    await q(sb.from('venues').insert({ name: u.newName || 'تصميم مسرح جديد', capacity: N(u.newCap), chart_path: u.path || null, chart_name: u.fileName || null,
+      zones: u.zones.map(z => ({ name: z.name, position: z.position, tier: z.tier, rows: N(z.rows), seats_per_row: N(z.seats_per_row), blocked: N(z.blocked) })) }));
+    S.ui.upload = null; await loadLib(); render(); toast('تمت إضافة التصميم إلى المكتبة');
+  } else {
+    if (S.d.zones.length && !confirm('سيتم استبدال خانات الحفلة الحالية بهذه النتيجة. متابعة؟')) return;
+    await replaceZones(u.zones);
+    if (u.path) await q(sb.from('concerts').update({ chart_path: u.path, chart_name: u.fileName, venue_id: null }).eq('id', S.cid));
+    S.ui.upload = null; await refresh(); toast('تم اعتماد الخانات');
+  }
+});
+async function handleUpload(file) {
+  const u = S.ui.upload;
+  if (file.size > 20 * 1024 * 1024) { toast('حجم الملف أكبر من 20MB', true); return; }
+  u.fileName = file.name; u.isPdf = file.type === 'application/pdf'; u.stage = 'busy';
+  u.previewUrl = URL.createObjectURL(file); render();
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const path = `${u.target}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    await q(sb.storage.from('charts').upload(path, file, { contentType: file.type }));
+    u.path = path;
+    if (!u.zones.length) u.zones = [{ name: 'خانة 1', position: 'front', tier: u.tierNames[0], rows: 5, seats_per_row: 20, blocked: 0 }];
+    u.stage = 'done'; render();
+  } catch (e) {
+    toast(errMsg(e), true);
+    u.stage = 'idle'; render();
+  }
+}
+
+// team
+A['perm'] = (el) => run(async () => {
+  const uid = el.dataset.id, sec = el.dataset.sec;
+  const on = S.team.perms.some(p => p.user_id === uid && p.section === sec);
+  if (on) await q(sb.from('permissions').delete().eq('user_id', uid).eq('section', sec));
+  else await q(sb.from('permissions').insert({ user_id: uid, section: sec }));
+  await loadTeam(); render();
+});
+A['del-member'] = (el) => run(async () => { const p = S.team.profs.find(x => x.id === el.dataset.id); if (!confirm(`إزالة ${p.full_name || p.email} من الفريق؟ لن يستطيع الدخول بعدها.`)) return; await q(sb.from('profiles').delete().eq('id', p.id)); await loadTeam(); render(); });
+A['del-inv'] = (el) => run(async () => { await q(sb.from('invitations').delete().eq('email', el.dataset.id)); await loadTeam(); render(); });
+
+/* ================= field changes ================= */
+const CH = {};
+const numF = new Set(['amount', 'rows', 'seats_per_row', 'blocked', 'capacity', 'usd_rate', 'target_margin', 'expected_occupancy', 'platform_fee_pct', 'gateway_fee_pct', 'weight', 'manual_price', 'occupancy']);
+const val = (el) => { const f = el.dataset.f; if (numF.has(f)) return Math.max(0, N(el.value)); if (f === 'tier_id' || f === 'covers_cost_id') return el.value || null; return el.value; };
+const upd = (table) => (el) => run(async () => { await q(sb.from(table).update({ [el.dataset.f]: val(el) }).eq('id', el.dataset.id)); await refresh(); });
+CH['cost'] = upd('cost_items'); CH['sponsor'] = upd('sponsors'); CH['other'] = upd('other_revenues');
+CH['tier'] = upd('ticket_tiers'); CH['zone'] = upd('concert_zones'); CH['scen'] = upd('scenarios');
+CH['concert'] = (el) => run(async () => {
+  let v = val(el); if (el.dataset.f === 'expected_occupancy') v = Math.min(100, Math.max(1, v));
+  await q(sb.from('concerts').update({ [el.dataset.f]: v }).eq('id', S.cid)); await refresh();
+});
+CH['comp'] = (el) => run(async () => {
+  const qty = Math.max(0, Math.round(N(el.value)));
+  if (qty === 0) await q(sb.from('sponsor_comps').delete().eq('sponsor_id', el.dataset.sid).eq('tier_id', el.dataset.tid));
+  else await q(sb.from('sponsor_comps').upsert({ sponsor_id: el.dataset.sid, tier_id: el.dataset.tid, qty }));
+  await refresh();
+});
+CH['pick-venue'] = (el) => run(async () => {
+  if (!el.value) { await q(sb.from('concerts').update({ venue_id: null }).eq('id', S.cid)); await refresh(); return; }
+  if (await useVenue(el.value) === false) { render(); return; }
+  await refresh(); toast('تم تحميل المسرح');
+});
+CH['lib-name'] = (el) => run(async () => { await q(sb.from('venues').update({ name: el.value }).eq('id', el.dataset.id)); await loadLib(); });
+CH['prof-name'] = (el) => run(async () => { await q(sb.from('profiles').update({ full_name: el.value }).eq('id', el.dataset.id)); await loadTeam(); });
+CH['up-file'] = (el) => { const f = el.files?.[0]; if (f) handleUpload(f); };
+CH['up-meta'] = (el) => { S.ui.upload[el.dataset.f] = el.dataset.f === 'newCap' ? N(el.value) : el.value; };
+CH['up-zone'] = (el) => { const z = S.ui.upload.zones[Number(el.dataset.i)]; const f = el.dataset.f; z[f] = numF.has(f) ? Math.max(0, N(el.value)) : el.value; render(); };
+
+/* ================= forms ================= */
+const FM = {};
+FM['auth'] = (form) => run(async () => {
+  const f = new FormData(form), m = S.ui.authMode;
+  const email = String(f.get('email')).trim(), password = String(f.get('password') || '');
+  if (m === 'login') { const { error } = await sb.auth.signInWithPassword({ email, password }); if (error) throw error; }
+  else if (m === 'signup') {
+    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: String(f.get('name')).trim() }, emailRedirectTo: location.href.split('#')[0] } });
+    if (error) throw error;
+    if (!data.session) toast('تم إنشاء الحساب. افتح رسالة التأكيد في بريدك ثم سجّل الدخول');
+  } else {
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split('#')[0] }); if (error) throw error;
+    toast('أرسلنا رابط الاستعادة إلى بريدك');
+  }
+});
+FM['newpass'] = (form) => run(async () => { const { error } = await sb.auth.updateUser({ password: new FormData(form).get('password') }); if (error) throw error; S.recovering = false; toast('تم تغيير كلمة المرور'); await boot(); });
+FM['concert'] = (form) => run(async () => {
+  const f = new FormData(form), m = S.ui.modal;
+  const row = { name: String(f.get('name')).trim(), event_date: f.get('event_date') || null, location: String(f.get('location') || '') };
+  if (m.data) {
+    row.status = f.get('status'); const ap = f.get('actual_profit'); row.actual_profit = ap === '' ? null : N(ap);
+    await q(sb.from('concerts').update(row).eq('id', m.data.id));
+    S.ui.modal = null; await loadConcerts(); await refresh();
+  } else {
+    const c = await q(sb.from('concerts').insert(row).select().single());
+    S.ui.modal = null; S.cid = c.id; await loadConcerts(); await loadConcert(); S.screen = 'venue'; render(); toast('تم إنشاء الحفلة. ابدأ باختيار المسرح');
+  }
+});
+FM['invite'] = (form) => run(async () => {
+  const f = new FormData(form);
+  await q(sb.from('invitations').upsert({ email: String(f.get('email')).trim().toLowerCase(), full_name: String(f.get('name') || '').trim(), invited_by: S.me.id }));
+  await loadTeam(); render(); toast('تمت إضافة الدعوة. أرسل له رابط التطبيق');
+});
+
+/* ================= events ================= */
+document.addEventListener('click', (e) => { const el = e.target.closest('[data-act]'); if (!el || el.disabled) return; e.preventDefault(); A[el.dataset.act]?.(el, e); });
+document.addEventListener('change', (e) => { const el = e.target.closest('[data-chg]'); if (!el) return; CH[el.dataset.chg]?.(el, e); });
+document.addEventListener('submit', (e) => { const el = e.target.closest('[data-form]'); if (!el) return; e.preventDefault(); FM[el.dataset.form]?.(el, e); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && (S.ui.viewer || S.ui.modal)) { S.ui.viewer = null; S.ui.modal = null; renderLayer(); } });
+
+/* ================= boot ================= */
+async function boot() {
+  const { data } = await sb.auth.getSession();
+  S.session = data.session;
+  if (S.session) {
+    try { await loadBase(); } catch (e) { toast(errMsg(e), true); }
+    if (S.me && !S.cid && S.concerts.length) {
+      const open = S.concerts.find(c => c.status !== 'archived') || S.concerts[0];
+      S.cid = open.id; await loadConcert().catch(() => { });
+      S.screen = firstScreenFor();
+    }
+  }
+  render();
+}
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'PASSWORD_RECOVERY') { S.recovering = true; S.session = session; render(); return; }
+  const was = !!S.session; S.session = session;
+  if (event === 'SIGNED_OUT') { S.me = null; S.cid = null; S.d = null; S.screen = 'concerts'; render(); }
+  else if (event === 'SIGNED_IN' && !was) setTimeout(boot, 0);
+});
+boot();
+</script>
+</body>
+</html>
