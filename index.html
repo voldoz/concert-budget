@@ -67,6 +67,9 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 .viewer .body{flex:1;min-height:0;display:flex;flex-wrap:wrap}
 .viewer .pic{flex:999 1 480px;min-width:0;height:100%;overflow:auto;background:#F1EFE9;padding:16px}
 .viewer aside{flex:1 1 260px;max-height:100%;overflow:auto;padding:16px;border-right:1px solid #E4E1D8;display:flex;flex-direction:column;gap:10px}
+.savebar{position:fixed;top:12px;left:12px;z-index:55;background:#1C1830;color:#fff;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;opacity:0;transform:translateY(-8px);transition:opacity .2s,transform .2s;pointer-events:none}
+.savebar.show{opacity:1;transform:none}.savebar.ok{background:#1C5E3C}.savebar.err{background:#8A3412}
+@media (prefers-reduced-motion:reduce){.savebar{transition:none}}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:60;background:#1C1830;color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;max-width:90vw;box-shadow:0 6px 20px rgba(0,0,0,.2)}
 .toast.err{background:#8A3412}
 .auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -84,6 +87,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 <body>
 <div id="root"><div class="loading">جاري التحميل…</div></div>
 <div id="layer"></div>
+<div id="savebar" class="savebar" role="status" aria-live="polite"></div>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -245,7 +249,32 @@ async function loadConcert() {
   if (can('tickets') || can('scenarios')) totals = await q(sb.rpc('concert_totals', { cid }));
   S.d = { concert, tiers, zones, costs, sponsors, comps, others, scenarios, totals };
 }
-async function refresh() { if (S.cid) await loadConcert(); render(); }
+async function refresh() { if (S.cid) await loadConcert(); scheduleRender(); }
+
+/* while the person is typing in a field, keep the page as is (keyboard and focus stay);
+   redraw once they leave the fields, keeping the scroll position */
+let pendingRender = false;
+function isEditing() {
+  const a = document.activeElement;
+  return !!a && root.contains(a) && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.type !== 'file' && a.type !== 'color';
+}
+function renderKeep() { const y = window.scrollY; render(); window.scrollTo(0, y); }
+function scheduleRender() { if (isEditing()) pendingRender = true; else { pendingRender = false; renderKeep(); } }
+document.addEventListener('focusout', () => setTimeout(() => { if (pendingRender && !isEditing()) { pendingRender = false; renderKeep(); } }, 250));
+
+const saveBar = document.getElementById('savebar');
+let saveTimer = null, saving = 0;
+function saveState(st) {
+  clearTimeout(saveTimer);
+  saveBar.textContent = st === 'busy' ? 'جاري الحفظ…' : st === 'ok' ? 'تم الحفظ ✓' : 'لم يُحفظ';
+  saveBar.className = 'savebar show ' + st;
+  if (st !== 'busy') saveTimer = setTimeout(() => { saveBar.className = 'savebar'; }, 1600);
+}
+async function save(fn) {
+  saving++; saveState('busy');
+  try { await fn(); saving--; if (!saving) saveState('ok'); }
+  catch (e) { saving--; saveState('err'); console.error(e); toast(errMsg(e), true); }
+}
 
 /* ================= navigation ================= */
 const SCREENS = [
@@ -598,11 +627,15 @@ function renderTickets() {
       <div class="field"><label class="lbl" for="t-pf">عمولة منصة التذاكر %</label><input id="t-pf" class="fld w-full num" type="number" min="0" step="0.1" value="${N(c.platform_fee_pct)}" data-chg="concert" data-f="platform_fee_pct" ${isMgr() ? '' : 'disabled'}></div>
       <div class="field"><label class="lbl" for="t-gf">رسوم بوابة الدفع %</label><input id="t-gf" class="fld w-full num" type="number" min="0" step="0.1" value="${N(c.gateway_fee_pct)}" data-chg="concert" data-f="gateway_fee_pct" ${isMgr() ? '' : 'disabled'}></div>
     </div>
-    <div class="grid">
-      <div style="border:1px solid #E4E1D8;border-radius:12px;padding:14px" class="stack"><span class="lbl">التكاليف (بعد الرعاية العينية)</span><span class="num" style="font-size:20px;font-weight:700">${fmt(r.F)}</span></div>
-      <div style="border:1px solid #E4E1D8;border-radius:12px;padding:14px" class="stack"><span class="lbl">رعاية نقدية + إيرادات أخرى</span><span class="num" style="font-size:20px;font-weight:700">${fmt(r.S)}</span></div>
-      <div style="border:1px solid #E4E1D8;border-radius:12px;padding:14px" class="stack"><span class="lbl">صافي الربح عند الإشغال المتوقع</span><span class="num ${r.cur.profit >= 0 ? 'pos' : 'neg'}" style="font-size:20px;font-weight:700">${fmt(r.cur.profit)}</span></div>
+    <div style="border:1px solid #E4E1D8;border-radius:12px;padding:6px 16px">
+      <div class="row between" style="padding:10px 0;border-bottom:1px solid #EFECE5"><span>إجمالي التكاليف قبل الرعاية</span><span class="num" style="font-weight:700;font-size:17px">${fmt(r.F + r.inkind)}</span></div>
+      <div class="row between" style="padding:10px 0;border-bottom:1px solid #EFECE5"><span class="muted" style="font-size:14px">− الرعاية العينية</span><span class="num" style="color:#1E5A55;font-weight:600">${r.inkind > 0 ? '− ' : ''}${fmt(r.inkind)}</span></div>
+      <div class="row between" style="padding:10px 0;border-bottom:1px solid #EFECE5"><span class="muted" style="font-size:14px">− الرعاية النقدية</span><span class="num" style="color:#1E5A55;font-weight:600">${r.cash > 0 ? '− ' : ''}${fmt(r.cash)}</span></div>
+      <div class="row between" style="padding:10px 0;border-bottom:1px solid #EFECE5"><span class="muted" style="font-size:14px">− الإيرادات الأخرى</span><span class="num" style="color:#1E5A55;font-weight:600">${r.other > 0 ? '− ' : ''}${fmt(r.other)}</span></div>
+      <div class="row between" style="padding:10px 0;border-bottom:1px solid #EFECE5"><b>صافي التكاليف المطلوب تغطيتها بالتذاكر</b><span class="num" style="font-weight:700;font-size:17px">${fmt(Math.max(0, r.F - r.S))}</span></div>
+      <div class="row between" style="padding:12px 0"><b>صافي الربح عند الإشغال المتوقع</b><span class="num ${r.cur.profit >= 0 ? 'pos' : 'neg'}" style="font-weight:700;font-size:20px">${fmt(r.cur.profit)}</span></div>
     </div>
+    <div class="muted">العمولات (${pct((r.C) * 100)}) تُضاف فوق ذلك وتُحسب من مبيعات التذاكر.</div>
     ${auto && r.need <= 0 ? '<div class="note info">الرعاة والإيرادات الأخرى تغطي التكاليف والهامش المطلوب بالكامل، لذلك السعر المقترح صفر. استخدم التسعير اليدوي.</div>' : ''}
     ${r.sellTot === 0 ? '<div class="note warn">لا توجد مقاعد مرتبطة بالفئات. أضف خانات المسرح واربطها بالفئات من شاشة «المسرح والمقاعد».</div>' : ''}
   </section>
@@ -941,14 +974,14 @@ A['del-inv'] = (el) => run(async () => { await q(sb.from('invitations').delete()
 const CH = {};
 const numF = new Set(['amount', 'rows', 'seats_per_row', 'blocked', 'capacity', 'usd_rate', 'target_margin', 'expected_occupancy', 'platform_fee_pct', 'gateway_fee_pct', 'weight', 'manual_price', 'occupancy']);
 const val = (el) => { const f = el.dataset.f; if (numF.has(f)) return Math.max(0, N(el.value)); if (f === 'tier_id' || f === 'covers_cost_id') return el.value || null; return el.value; };
-const upd = (table) => (el) => run(async () => { await q(sb.from(table).update({ [el.dataset.f]: val(el) }).eq('id', el.dataset.id)); await refresh(); });
+const upd = (table) => (el) => save(async () => { await q(sb.from(table).update({ [el.dataset.f]: val(el) }).eq('id', el.dataset.id)); await refresh(); });
 CH['cost'] = upd('cost_items'); CH['sponsor'] = upd('sponsors'); CH['other'] = upd('other_revenues');
 CH['tier'] = upd('ticket_tiers'); CH['zone'] = upd('concert_zones'); CH['scen'] = upd('scenarios');
-CH['concert'] = (el) => run(async () => {
+CH['concert'] = (el) => save(async () => {
   let v = val(el); if (el.dataset.f === 'expected_occupancy') v = Math.min(100, Math.max(1, v));
   await q(sb.from('concerts').update({ [el.dataset.f]: v }).eq('id', S.cid)); await refresh();
 });
-CH['comp'] = (el) => run(async () => {
+CH['comp'] = (el) => save(async () => {
   const qty = Math.max(0, Math.round(N(el.value)));
   if (qty === 0) await q(sb.from('sponsor_comps').delete().eq('sponsor_id', el.dataset.sid).eq('tier_id', el.dataset.tid));
   else await q(sb.from('sponsor_comps').upsert({ sponsor_id: el.dataset.sid, tier_id: el.dataset.tid, qty }));
@@ -959,11 +992,11 @@ CH['pick-venue'] = (el) => run(async () => {
   if (await useVenue(el.value) === false) { render(); return; }
   await refresh(); toast('تم تحميل المسرح');
 });
-CH['lib-name'] = (el) => run(async () => { await q(sb.from('venues').update({ name: el.value }).eq('id', el.dataset.id)); await loadLib(); });
-CH['prof-name'] = (el) => run(async () => { await q(sb.from('profiles').update({ full_name: el.value }).eq('id', el.dataset.id)); await loadTeam(); });
+CH['lib-name'] = (el) => save(async () => { await q(sb.from('venues').update({ name: el.value }).eq('id', el.dataset.id)); await loadLib(); });
+CH['prof-name'] = (el) => save(async () => { await q(sb.from('profiles').update({ full_name: el.value }).eq('id', el.dataset.id)); await loadTeam(); });
 CH['up-file'] = (el) => { const f = el.files?.[0]; if (f) handleUpload(f); };
 CH['up-meta'] = (el) => { S.ui.upload[el.dataset.f] = el.dataset.f === 'newCap' ? N(el.value) : el.value; };
-CH['up-zone'] = (el) => { const z = S.ui.upload.zones[Number(el.dataset.i)]; const f = el.dataset.f; z[f] = numF.has(f) ? Math.max(0, N(el.value)) : el.value; render(); };
+CH['up-zone'] = (el) => { const z = S.ui.upload.zones[Number(el.dataset.i)]; const f = el.dataset.f; z[f] = numF.has(f) ? Math.max(0, N(el.value)) : el.value; scheduleRender(); };
 
 /* ================= forms ================= */
 const FM = {};
@@ -1003,7 +1036,7 @@ FM['invite'] = (form) => run(async () => {
 document.addEventListener('click', (e) => { const el = e.target.closest('[data-act]'); if (!el || el.disabled) return; e.preventDefault(); A[el.dataset.act]?.(el, e); });
 document.addEventListener('change', (e) => { const el = e.target.closest('[data-chg]'); if (!el) return; CH[el.dataset.chg]?.(el, e); });
 document.addEventListener('submit', (e) => { const el = e.target.closest('[data-form]'); if (!el) return; e.preventDefault(); FM[el.dataset.form]?.(el, e); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && (S.ui.viewer || S.ui.modal)) { S.ui.viewer = null; S.ui.modal = null; renderLayer(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches?.('input[data-chg]')) { e.preventDefault(); e.target.blur(); return; } if (e.key === 'Escape' && (S.ui.viewer || S.ui.modal)) { S.ui.viewer = null; S.ui.modal = null; renderLayer(); } });
 
 /* ================= boot ================= */
 async function boot() {
