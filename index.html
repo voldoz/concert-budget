@@ -120,8 +120,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Bump APP_VERSION and write APP_NOTES on every release: open copies compare it to show the update banner.
-const APP_VERSION = '2026.11.24-4';
-const APP_NOTES = 'معاينة تقرير PDF قبل إرساله أو طباعته';
+const APP_VERSION = '2026.11.24-5';
+const APP_NOTES = 'بند إيجار المسرح يظهر دائماً عند اختيار المسرح ويتحدث مع قائمة المسارح';
 const SB_URL = 'https://awkkcmyeaovcuiphlzye.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3a2tjbXllYW92Y3VpcGhsenllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MDg4NTAsImV4cCI6MjExMDk4NDg1MH0.1rM1XFyAIcQZ4iCj7K7hdUPlsVyyIcmPma7G1pdhTK8';
 const sb = createClient(SB_URL, SB_KEY);
@@ -508,7 +508,7 @@ function renderVenue() {
       <div class="field" style="flex:1 1 320px"><label class="lbl" for="v-pick">اختر المسرح من القائمة (${S.lib.length})</label>
       <select id="v-pick" class="fld w-full" data-chg="pick-venue"><option value="">— مسرح مخصص لهذه الحفلة —</option>${S.lib.map(v => `<option value="${v.id}" ${v.id === c.venue_id ? 'selected' : ''}>${esc(v.name)}${N(v.cost) > 0 ? ' · إيجار ' + fmt(v.cost) : ''}</option>`).join('')}</select></div>
       <div class="row"><button class="btn btn-ghost" data-act="save-to-lib">حفظ كمسرح جديد في القائمة</button><button class="btn btn-ghost" data-act="go" data-id="library">قائمة المسارح</button></div></div>
-      ${curV && N(curV.cost) > 0 ? `<div class="note info">إيجار هذا المسرح ${fmt(curV.cost)} أُضيف تلقائياً إلى التكاليف الثابتة، وتقدر تعدّله من شاشة التكاليف.</div>` : '<div class="muted">عند اختيار مسرح تُحمَّل خاناته، ويُضاف إيجاره تلقائياً إلى التكاليف الثابتة.</div>'}
+      ${curV ? (N(curV.cost) > 0 ? `<div class="note info">إيجار هذا المسرح ${fmt(curV.cost)} أُضيف تلقائياً إلى التكاليف الثابتة، وتقدر تعدّله من شاشة التكاليف.</div>` : `<div class="note warn">إيجار هذا المسرح لم يُحدد بعد. أُضيف بند «إيجار المسرح» بصفر في التكاليف الثابتة، ويتحدث تلقائياً لما تكتب الإيجار في قائمة المسارح.</div>`) : '<div class="muted">عند اختيار مسرح تُحمَّل خاناته، ويُضاف إيجاره تلقائياً إلى التكاليف الثابتة.</div>'}
     </section>
     <section class="card grid" style="align-items:end">
       <div class="field"><label class="lbl" for="v-name">اسم المسرح / القاعة</label><input id="v-name" class="fld w-full" value="${esc(c.venue_name)}" data-chg="concert" data-f="venue_name"></div>
@@ -586,7 +586,7 @@ function renderLibrary() {
       <div class="row" style="gap:14px"><span><b class="num big" style="font-size:22px">${int(total)}</b> <span class="muted">مقعد</span></span><span class="muted">${zones.length} خانات · ${Object.keys(byTier).length} تصنيفات</span></div>
       ${tierSummary ? `<div class="row" style="gap:6px">${tierSummary}</div>` : ''}
       ${open ? `<div class="tblwrap"><table class="tbl" style="min-width:960px"><thead><tr><th>الخانة</th><th>الموقع</th><th>التصنيف</th><th>الصفوف</th><th>مقاعد/صف</th><th>محجوب</th><th>المقاعد</th><th></th></tr></thead><tbody>${zrows || '<tr><td colspan="8" class="muted">لا توجد خانات.</td></tr>'}</tbody></table></div>
-        <div class="row"><button class="btn btn-ghost btn-sm" data-act="lz-add" data-id="${v.id}">+ إضافة خانة</button><span class="muted">التعديلات تُحفظ تلقائياً. الحفلات التي اختارت هذا المسرح سابقاً لا تتغير.</span></div>` : ''}
+        <div class="row"><button class="btn btn-ghost btn-sm" data-act="lz-add" data-id="${v.id}">+ إضافة خانة</button><span class="muted">التعديلات تُحفظ تلقائياً. تغيير الإيجار يحدّث بند الإيجار في الحفلات التي اختارت المسرح، أما الخانات فلا تتغير فيها.</span></div>` : ''}
       <div class="row">${isCur ? '<span class="chip" style="background:#EEE9F8;color:#3F2A75">مستخدم في الحفلة الحالية</span>' : S.d ? `<button class="btn btn-primary btn-sm" data-act="use-venue" data-id="${v.id}">اختيار للحفلة الحالية</button>` : ''}
         ${v.chart_path ? `<button class="btn btn-ghost btn-sm" data-act="view-lib-chart" data-id="${v.id}">صورة المسرح</button>` : ''}
         <label class="btn btn-ghost btn-sm" style="position:relative;overflow:hidden">${v.chart_path ? 'تغيير الصورة' : 'إرفاق صورة'}<input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" data-chg="lib-img" data-id="${v.id}" style="position:absolute;inset:0;opacity:0;cursor:pointer" aria-label="صورة المسرح"></label>
@@ -610,7 +610,7 @@ function renderCosts() {
     const k = toK(x.amount, x.currency, c.usd_rate);
     const cov = coverOf(x.id); const covK = Math.min(k, cov.reduce((a, s) => a + toK(s.amount, s.currency, c.usd_rate), 0));
     return `<tr>
-      <td><input class="fld w-md" aria-label="البند" value="${esc(x.name)}" data-chg="cost" data-id="${x.id}" data-f="name">${x.source === 'venue' ? '<div><span class="chip" style="background:#EEE9F8;color:#3F2A75;margin-top:4px">من اختيار المسرح</span></div>' : ''}</td>
+      <td><input class="fld w-md" aria-label="البند" value="${esc(x.name)}" data-chg="cost" data-id="${x.id}" data-f="name">${x.source === 'venue' ? `<div><span class="chip" style="background:#EEE9F8;color:#3F2A75;margin-top:4px">من اختيار المسرح</span>${N(x.amount) === 0 ? ' <span class="chip st-estimated" style="margin-top:4px">الإيجار لم يُحدد بعد</span>' : ''}</div>` : ''}</td>
       <td><div class="row" style="gap:6px;flex-wrap:nowrap"><input class="fld w-sm num" type="number" min="0" step="any" aria-label="المبلغ" value="${N(x.amount)}" data-chg="cost" data-id="${x.id}" data-f="amount">
         <select class="fld" style="width:84px" aria-label="العملة" data-chg="cost" data-id="${x.id}" data-f="currency"><option value="KWD" ${x.currency === 'KWD' ? 'selected' : ''}>د.ك</option><option value="USD" ${x.currency === 'USD' ? 'selected' : ''}>$</option></select></div></td>
       <td class="num" style="font-weight:600">${fmt(k - covK)}${covK > 0 ? `<div style="font-size:12px;font-weight:500;color:#1E5A55">مغطى برعاية: ${fmt(covK)} · ${cov.map(s => esc(s.name)).join('، ')}</div>` : ''}</td>
