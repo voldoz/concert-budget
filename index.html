@@ -120,8 +120,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Bump APP_VERSION and write APP_NOTES on every release: open copies compare it to show the update banner.
-const APP_VERSION = '2026.11.24-6';
-const APP_NOTES = 'خيار ثاني للتسعير: تدخل سعر كل فئة بنفسك';
+const APP_VERSION = '2026.11.24-7';
+const APP_NOTES = 'الفئات مرتبة من الأغلى إلى الأرخص';
 const SB_URL = 'https://awkkcmyeaovcuiphlzye.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3a2tjbXllYW92Y3VpcGhsenllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MDg4NTAsImV4cCI6MjExMDk4NDg1MH0.1rM1XFyAIcQZ4iCj7K7hdUPlsVyyIcmPma7G1pdhTK8';
 const sb = createClient(SB_URL, SB_KEY);
@@ -209,6 +209,8 @@ function calc(d, overrides) {
       x.price = (need > 0 && o > 0 && wSum > 0) ? Math.ceil(need / (o * wSum) * N(x.weight)) : 0;
     } else x.price = N(x.manual_price);
   });
+  // most expensive first (ties: higher weight first)
+  tiers.sort((p, q) => (q.price - p.price) || (N(q.weight) - N(p.weight)));
   const gross = tiers.reduce((a, x) => a + x.price * x.sell, 0);
   const at = (occ) => {
     const ticket = gross * occ, comm = ticket * C, rev = ticket + S_, cost = F + comm;
