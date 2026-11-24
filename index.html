@@ -120,8 +120,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Bump APP_VERSION and write APP_NOTES on every release: open copies compare it to show the update banner.
-const APP_VERSION = '2026.11.24-2';
-const APP_NOTES = 'صورة مسرح جابر العلي مرفقة مع المسرح';
+const APP_VERSION = '2026.11.24-3';
+const APP_NOTES = 'تصدير PDF و Excel يعمل على الجوال بتصميم جديد للتقرير';
 const SB_URL = 'https://awkkcmyeaovcuiphlzye.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3a2tjbXllYW92Y3VpcGhsenllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MDg4NTAsImV4cCI6MjExMDk4NDg1MH0.1rM1XFyAIcQZ4iCj7K7hdUPlsVyyIcmPma7G1pdhTK8';
 const sb = createClient(SB_URL, SB_KEY);
@@ -750,7 +750,7 @@ function renderExport() {
   <div class="grid-wide">
     <div style="border:1px solid #E4E1D8;border-radius:12px;padding:16px" class="stack" ><b>التقرير الداخلي الكامل</b><span class="muted">كل البنود والتكاليف والرعاة والأرباح والسيناريوهات والخانات.</span><div class="row"><button class="btn btn-ghost" data-act="exp" data-id="full-pdf">PDF</button><button class="btn btn-ghost" data-act="exp" data-id="full-xlsx">Excel</button></div></div>
     <div style="border:1px solid #E4E1D8;border-radius:12px;padding:16px" class="stack"><b>التقرير المختصر للرعاة والشركاء</b><span class="muted">معلومات الحفلة والمسرح وفئات التذاكر وأسعارها، بدون التكاليف والأرباح.</span><div class="row"><button class="btn btn-ghost" data-act="exp" data-id="short-pdf">PDF</button><button class="btn btn-ghost" data-act="exp" data-id="short-xlsx">Excel</button></div></div>
-  </div><div class="muted">PDF يفتح نافذة الطباعة، اختر «حفظ كـ PDF».</div></section>`;
+  </div><div class="muted">بعد التجهيز اضغط «مشاركة / حفظ الملف» لحفظه في الملفات أو إرساله.</div></section>`;
 }
 function reportData() {
   const d = S.d, c = d.concert, r = calc(d);
@@ -781,42 +781,249 @@ async function exportXlsx(full) {
   } else {
     XL.utils.book_append_sheet(wb, sheetFrom(XL, [['الراعي', 'نوع الرعاية'], ...x.sponsors.map(s => [s.name, s.kind])]), 'الرعاة');
   }
-  XL.writeFile(wb, `${c.name} - ${full ? 'تقرير داخلي' : 'تقرير مختصر'}.xlsx`);
+  const data = XL.write(wb, { bookType: 'xlsx', type: 'array' });
+  offerFile(new File([data], `${c.name} - ${full ? 'تقرير داخلي' : 'تقرير مختصر'}.xlsx`, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
 }
-function exportPdf(full) {
+/* ---------- PDF: pages drawn on canvas (browser shapes the Arabic), packed into a PDF file ---------- */
+const PDF_FONT = '"IBM Plex Sans Arabic", system-ui, sans-serif';
+const PG = { W: 794, H: 1123, M: 60, S: 2 };           // A4 at 96 dpi, margins, render scale
+function pdfDoc() {
+  const pages = [];
+  let ctx = null, y = 0;
+  const bottom = PG.H - 70;
+  function newPage() {
+    const cv = document.createElement('canvas'); cv.width = PG.W * PG.S; cv.height = PG.H * PG.S;
+    ctx = cv.getContext('2d'); ctx.scale(PG.S, PG.S);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, PG.W, PG.H);
+    ctx.direction = 'rtl'; ctx.textBaseline = 'middle';
+    pages.push(cv); y = 46; return ctx;
+  }
+  const font = (size, weight) => { ctx.font = `${weight || 400} ${size}px ${PDF_FONT}`; };
+  function text(str, x, yy, o = {}) {
+    font(o.size || 13, o.weight); ctx.fillStyle = o.color || '#1B1A22';
+    ctx.textAlign = o.align || 'right';
+    let s = String(str ?? '');
+    if (o.max) { while (s.length > 1 && ctx.measureText(s).width > o.max) s = s.slice(0, -2) + '…'; }
+    ctx.fillText(s, x, yy);
+    return ctx.measureText(s).width;
+  }
+  function rrect(x, yy, w, h, r, fill, stroke) {
+    ctx.beginPath(); ctx.moveTo(x + r, yy); ctx.arcTo(x + w, yy, x + w, yy + h, r); ctx.arcTo(x + w, yy + h, x, yy + h, r);
+    ctx.arcTo(x, yy + h, x, yy, r); ctx.arcTo(x, yy, x + w, yy, r); ctx.closePath();
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+  }
+  const line = (x1, y1, x2, y2, color, w) => { ctx.strokeStyle = color; ctx.lineWidth = w || 1; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); };
+  const need = (h) => { if (y + h > bottom) newPage(); };
+  const R = PG.W - PG.M, L = PG.M, CW = R - L;
+  return {
+    pages, get y() { return y; }, set y(v) { y = v; },
+    band(kind, title, meta, tag) {
+      newPage(); y = 0;
+      ctx.fillStyle = '#1C1830'; ctx.fillRect(0, 0, PG.W, 136);
+      text(kind, R, 32, { size: 12, color: '#CFC4EA' });
+      text(title, R, 64, { size: 27, weight: 700, color: '#FFFFFF', max: CW });
+      text(meta, R, 93, { size: 13, color: '#E5E0F2', max: CW });
+      if (tag) { font(11, 600); const w = ctx.measureText(tag).width + 26; rrect(R - w, 106, w, 21, 10.5, '#5B3FA0'); text(tag, R - 13, 116.5, { size: 11, weight: 600, color: '#FFFFFF' }); }
+      y = 146;
+    },
+    h2(t) { need(120); y += 10; text(t, R, y + 10, { size: 15, weight: 700, color: '#3F2A75' }); y += 22; line(L, y, R, y, '#EEE9F8', 2); y += 9; },
+    note(t) { need(20); text(t, R, y + 8, { size: 10, color: '#5E5B66', max: CW }); y += 20; },
+    kpis(items) {
+      need(90); const gap = 12, w = (CW - gap * (items.length - 1)) / items.length;
+      items.forEach((k, i) => {
+        const x = R - (i + 1) * w - i * gap;
+        rrect(x, y, w, 78, 10, '#FFFFFF', '#E4E1D8');
+        text(k.l, x + w - 12, y + 17, { size: 10.5, color: '#5E5B66', max: w - 20 });
+        text(k.v, x + w - 12, y + 41, { size: 19, weight: 700, color: k.color || '#1B1A22', max: w - 20 });
+        text(k.s, x + w - 12, y + 63, { size: 9.5, color: '#5E5B66', max: w - 20 });
+      });
+      y += 88;
+    },
+    // cols: [{t, w (fraction), num, }], rows: [[cell, ...]], cell = string | {v, bold, color, swatch, chip:[bg,fg], bar:[pct,color]}
+    table(cols, rows, o = {}) {
+      const rh = 25, ws = cols.map(c => c.w * CW), noHead = cols.every(c => !c.t);
+      const header = () => {
+        if (noHead) { need(rh * 2); line(L, y, R, y, '#EFECE5'); return; }
+        need(rh * 2); ctx.fillStyle = '#F5F4F0'; ctx.fillRect(L, y, CW, rh);
+        let x = R; cols.forEach((c, i) => { text(c.t, c.num ? x - ws[i] + 8 : x - 8, y + rh / 2, { size: 10.5, weight: 700, color: '#5E5B66', align: c.num ? 'left' : 'right' }); x -= ws[i]; });
+        y += rh; line(L, y, R, y, '#E4E1D8');
+      };
+      header();
+      rows.forEach((row, ri) => {
+        const isTot = o.total && ri === rows.length - 1;
+        const h = row.some(c => c && c.sub) ? rh + 11 : rh;
+        const keep = (o.total && ri === rows.length - 2) ? rh : 0;   // keep the last row with the total
+        if (y + h + keep > bottom) { newPage(); header(); }
+        if (isTot) line(L, y, R, y, '#1B1A22', 1.5);
+        let x = R;
+        row.forEach((c, i) => {
+          const cell = (c && typeof c === 'object') ? c : { v: c };
+          const cx = cols[i].num ? x - ws[i] + 8 : x - 8, cy = y + (cell.sub ? 11 : h / 2);
+          if (cell.bar) { const bw = ws[i] - 16; rrect(x - 8 - bw, cy - 5, bw, 10, 5, '#EFECE5'); const fw = Math.max(3, bw * cell.bar[0]); rrect(x - 8 - fw, cy - 5, fw, 10, 5, cell.bar[1]); }
+          else if (cell.chip) { font(9.5, 700); const w = ctx.measureText(cell.v).width + 16; rrect(x - 8 - w, cy - 9, w, 18, 9, cell.chip[0]); text(cell.v, x - 16, cy, { size: 9.5, weight: 700, color: cell.chip[1] }); }
+          else {
+            let tx = cx;
+            if (cell.swatch) { rrect(x - 8 - 11, cy - 5.5, 11, 11, 3, cell.swatch, 'rgba(0,0,0,.15)'); tx = x - 8 - 18; }
+            text(cell.v, tx, cy, { size: 11.5, weight: (cell.bold || isTot) ? 700 : 400, color: cell.color, align: cols[i].num ? 'left' : 'right', max: ws[i] - 16 - (cell.swatch ? 18 : 0) });
+            if (cell.sub) text(cell.sub, x - 8, cy + 16, { size: 9.5, color: cell.subColor || '#5E5B66', max: ws[i] - 16 });
+          }
+          x -= ws[i];
+        });
+        y += h; if (!isTot) line(L, y, R, y, '#EFECE5');
+      });
+      y += 6;
+    },
+    two(fnRight, fnLeft) {   // two half-width blocks side by side
+      const y0 = y, saveL = PG.M;
+      fnRight(); const y1 = y; y = y0; fnLeft && fnLeft(); y = Math.max(y, y1);
+    },
+    footer(dateStr) {
+      const n = pages.length;
+      pages.forEach((cv, i) => {
+        const c = cv.getContext('2d'); ctx = c;
+        line(L, PG.H - 46, R, PG.H - 46, '#EFECE5');
+        text('ميزانية الحفلات · أُعد في ' + dateStr, R, PG.H - 32, { size: 9.5, color: '#8E8A96' });
+        text(`صفحة ${i + 1} من ${n}`, L, PG.H - 32, { size: 9.5, color: '#8E8A96', align: 'left' });
+      });
+    }
+  };
+}
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = d instanceof Date ? d : new Date(d + 'T12:00:00');
+  if (isNaN(dt)) return String(d);
+  return dt.toLocaleDateString('ar-KW-u-nu-latn', { weekday: d instanceof Date ? undefined : 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+function buildReportPages(full) {
   const x = reportData(); const { c, r } = x;
-  const tbl = (head, rows) => `<table><thead><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(rw => `<tr>${rw.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-  const kv = (rows) => `<table class="kv">${rows.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</table>`;
-  let html = `<h1>${esc(c.name)}</h1><div class="sub">${esc(full ? 'تقرير داخلي كامل' : 'تقرير مختصر للرعاة والشركاء')} · ${new Date().toLocaleDateString('ar-KW')}</div>`;
-  html += `<h2>معلومات الحفلة</h2>` + kv([['التاريخ', c.event_date || '—'], ['المكان', c.location || '—'], ['المسرح', c.venue_name || '—'], ['السعة المسموحة', int(c.capacity)], ['إجمالي المقاعد', int(r.seatsAll)], ['المتاح للبيع', int(r.sellTot)]]);
+  const doc = pdfDoc();
+  const meta = [fmtDate(c.event_date), c.venue_name, c.location].filter(Boolean).join(' · ');
+  const tierColor = (id, name) => S.d.tiers.find(t => t.id === id)?.color || TIER_PRESETS[name]?.[1] || '#E8E5DE';
+  const stc = { 'تقديري': ['#FBEFD9', '#7A4A08'], 'مؤكد': ['#E3EEFA', '#1D4F80'], 'مدفوع': ['#DDF1E6', '#1C5E3C'] };
   if (full) {
-    html += `<h2>الملخص المالي</h2>` + kv([['التكاليف الثابتة', fmt(r.fixed)], ['التكاليف اللوجستية', fmt(r.logistics)], ['الرعاية العينية (موفّرة)', fmt(r.inkind)], ['الرعاية النقدية', fmt(r.cash)], ['إيرادات أخرى', fmt(r.other)], ['الإشغال المتوقع', pct(N(c.expected_occupancy))], ['الإيرادات المتوقعة', fmt(r.cur.rev)], ['التكاليف المتوقعة (شامل العمولات)', fmt(r.cur.cost)], ['صافي الربح المتوقع', fmt(r.cur.profit)], ['نقطة التعادل', beLabel(r)], ['سعر صرف الدولار', N(c.usd_rate).toFixed(4)]]);
+    doc.band('تقرير داخلي كامل', c.name, meta, 'سري · للمدير فقط');
+    doc.h2('الملخص');
+    doc.kpis([
+      { l: 'إجمالي التكاليف المتوقعة', v: fmt(r.cur.cost), s: 'شامل العمولات عند إشغال ' + pct(r.o * 100) },
+      { l: 'إجمالي الإيرادات المتوقعة', v: fmt(r.cur.rev), s: 'تذاكر + رعاة + إيرادات أخرى' },
+      { l: 'صافي الربح المتوقع', v: fmt(r.cur.profit), s: 'هامش ' + pct(r.cur.margin) + ' من التكاليف', color: r.cur.profit >= 0 ? '#1D5C8C' : '#A8481A' },
+      { l: 'نقطة التعادل', v: beLabel(r), s: r.beSeats != null ? int(r.beSeats) + ' تذكرة' : '—' }]);
+    doc.h2('من التكاليف إلى سعر التذكرة');
+    const sub = '#1E5A55';
+    doc.table([{ t: '', w: .7 }, { t: '', w: .3, num: 1 }], [
+      ['إجمالي التكاليف قبل الرعاية', { v: fmt(r.F + r.inkind), bold: 1 }],
+      [{ v: '− الرعاية العينية', color: sub }, { v: fmt(r.inkind), color: sub }],
+      [{ v: '− الرعاية النقدية', color: sub }, { v: fmt(r.cash), color: sub }],
+      [{ v: '− الإيرادات الأخرى', color: sub }, { v: fmt(r.other), color: sub }],
+      ['صافي التكاليف المطلوب تغطيتها بالتذاكر', fmt(Math.max(0, r.F - r.S))]], { total: 1 });
+    doc.note(`التسعير ${c.pricing_mode === 'auto' ? 'تلقائي بهامش ربح ' + pct(N(c.target_margin)) : 'يدوي'} · إشغال متوقع ${pct(N(c.expected_occupancy))} · العمولات ${pct(r.C * 100)} · سعر الدولار ${N(c.usd_rate).toFixed(4)} د.ك`);
+    doc.h2('فئات التذاكر والأسعار');
+    doc.table([{ t: 'الفئة', w: .26 }, { t: 'المقاعد', w: .12, num: 1 }, { t: 'للرعاة', w: .12, num: 1 }, { t: 'للبيع', w: .12, num: 1 }, { t: 'سعر التذكرة', w: .18, num: 1 }, { t: 'الإيراد المتوقع', w: .2, num: 1 }],
+      [...r.tiers.map(t => [{ v: t.name, swatch: tierColor(t.id, t.name) }, int(t.seats), int(t.comps), int(t.sell), { v: fmtP(t.price), bold: 1 }, fmt(t.price * Math.round(t.sell * r.o))]),
+       ['المجموع', int(r.seatsAll), int(r.compsTot), int(r.sellTot), '', fmt(r.tiers.reduce((a, t) => a + t.price * Math.round(t.sell * r.o), 0))]], { total: 1 });
+    doc.h2('السيناريوهات');
+    const mx = Math.max(1, ...x.scen.map(s => Math.abs(s.profit)));
+    doc.table([{ t: 'السيناريو', w: .14 }, { t: 'الإشغال', w: .1, num: 1 }, { t: 'التذاكر', w: .1, num: 1 }, { t: 'الإيرادات', w: .16, num: 1 }, { t: 'التكاليف', w: .16, num: 1 }, { t: 'صافي الربح', w: .16, num: 1 }, { t: '', w: .18 }],
+      x.scen.map(s => [s.label, pct(s.occ * 100), int(s.sold), fmt(s.rev), fmt(s.cost), { v: fmt(s.profit), bold: 1, color: s.profit >= 0 ? '#1D5C8C' : '#A8481A' }, { bar: [Math.abs(s.profit) / mx, s.profit >= 0 ? '#1D5C8C' : '#D9783F'] }]));
+    const costTable = (title, sec) => {
+      const items = x.costs.filter(k => k.section === sec); if (!items.length) return;
+      doc.h2(title);
+      doc.table([{ t: 'البند', w: .42 }, { t: 'المبلغ', w: .2, num: 1 }, { t: 'التكلفة الفعلية', w: .22, num: 1 }, { t: 'الحالة', w: .16 }],
+        [...items.map(k => [{ v: k.name, sub: k.covered > 0 ? 'مغطى برعاية عينية: ' + fmt(k.covered) : '', subColor: '#1E5A55' }, k.amount.toLocaleString('en-US') + ' ' + k.currency, fmt(k.eff), { v: k.status, chip: stc[k.status] || ['#EEE', '#333'] }]),
+         ['المجموع', '', fmt(items.reduce((a, k) => a + k.eff, 0)), '']], { total: 1 });
+    };
+    costTable('التكاليف الثابتة', 'ثابتة');
+    costTable('التكاليف اللوجستية', 'لوجستية');
+    if (x.sponsors.length) {
+      doc.h2('الرعاة');
+      doc.table([{ t: 'الراعي', w: .26 }, { t: 'النوع', w: .12 }, { t: 'القيمة', w: .18, num: 1 }, { t: 'يغطي', w: .26 }, { t: 'تذاكر مجانية', w: .18 }],
+        x.sponsors.map(s => [s.name, s.kind, fmt(s.kwd), s.covers || '—', s.comps || '—']));
+    }
+    if (x.others.length) {
+      doc.h2('إيرادات أخرى');
+      doc.table([{ t: 'المصدر', w: .5 }, { t: 'النوع', w: .3 }, { t: 'المبلغ', w: .2, num: 1 }],
+        [...x.others.map(o => [o.name, o.kind || '—', fmt(o.amount)]), ['المجموع', '', fmt(r.other)]], { total: 1 });
+    }
+    if (x.zones.length) {
+      doc.h2('خانات المسرح');
+      doc.table([{ t: 'الخانة', w: .3 }, { t: 'الموقع', w: .2 }, { t: 'الفئة', w: .2 }, { t: 'الصفوف × المقاعد', w: .16, num: 1 }, { t: 'المقاعد', w: .14, num: 1 }],
+        [...x.zones.map(z => [z.name, z.pos, z.tier, `${z.rows} × ${z.per}${z.blocked ? ' − ' + z.blocked : ''}`, int(z.seats)]), ['المجموع', '', '', '', int(r.seatsAll)]], { total: 1 });
+    }
+  } else {
+    doc.band('ملف الحفلة للرعاة والشركاء', c.name, meta, c.venue_name ? `${c.venue_name} · ${int(r.seatsAll)} مقعداً` : '');
+    doc.h2('عن الحفلة');
+    doc.table([{ t: '', w: .3 }, { t: '', w: .7 }], [['التاريخ', { v: fmtDate(c.event_date) || '—', bold: 1 }], ['المكان', { v: [c.venue_name, c.location].filter(Boolean).join('، ') || '—', bold: 1 }], ['السعة', { v: int(r.seatsAll) + ' مقعداً', bold: 1 }]]);
+    doc.h2('فئات التذاكر');
+    doc.table([{ t: 'الفئة', w: .5 }, { t: 'عدد المقاعد', w: .25, num: 1 }, { t: 'سعر التذكرة', w: .25, num: 1 }],
+      [...r.tiers.map(t => [{ v: t.name, swatch: tierColor(t.id, t.name) }, int(t.seats), { v: fmtP(t.price), bold: 1 }]), ['المجموع', int(r.seatsAll), '']], { total: 1 });
+    if (x.sponsors.length) {
+      doc.h2('شركاؤنا');
+      doc.table([{ t: 'الراعي', w: .6 }, { t: 'نوع الرعاية', w: .4 }], x.sponsors.map(s => [s.name, s.kind]));
+    }
+    doc.y += 10; doc.note('لا يتضمن هذا الملف التكاليف التفصيلية ولا الأرباح.');
   }
-  html += `<h2>فئات التذاكر</h2>` + tbl(['الفئة', 'المقاعد', ...(full ? ['للرعاة', 'للبيع'] : []), 'السعر'], r.tiers.map(t => [t.name, int(t.seats), ...(full ? [int(t.comps), int(t.sell)] : []), fmtP(t.price)]));
-  html += `<h2>خانات المسرح</h2>` + tbl(['الخانة', 'الموقع', 'الفئة', 'المقاعد'], x.zones.map(z => [z.name, z.pos, z.tier, int(z.seats)]));
-  if (full) {
-    html += `<h2>التكاليف</h2>` + tbl(['القسم', 'البند', 'المبلغ', 'التكلفة الفعلية', 'الحالة'], x.costs.map(k => [k.section, k.name, k.amount.toLocaleString('en-US') + ' ' + k.currency, fmt(k.eff) + (k.covered > 0 ? ' (مغطى ' + fmt(k.covered) + ')' : ''), k.status]));
-    html += `<h2>الرعاة</h2>` + tbl(['الراعي', 'النوع', 'القيمة', 'يغطي', 'تذاكر مجانية', 'الحالة'], x.sponsors.map(s => [s.name, s.kind, fmt(s.kwd), s.covers || '—', s.comps || '—', s.status]));
-    html += `<h2>إيرادات أخرى</h2>` + tbl(['المصدر', 'النوع', 'المبلغ', 'الحالة'], x.others.map(o => [o.name, o.kind, fmt(o.amount), STATUS[o.status]]));
-    html += `<h2>السيناريوهات</h2>` + tbl(['السيناريو', 'الإشغال', 'التذاكر', 'الإيرادات', 'التكاليف', 'صافي الربح'], x.scen.map(s => [s.label, pct(s.occ * 100), int(s.sold), fmt(s.rev), fmt(s.cost), fmt(s.profit)]));
-  } else if (x.sponsors.length) {
-    html += `<h2>الرعاة</h2>` + tbl(['الراعي', 'نوع الرعاية'], x.sponsors.map(s => [s.name, s.kind]));
+  doc.footer(fmtDate(new Date()));
+  return doc.pages;
+}
+// minimal PDF writer: one JPEG image per A4 page
+async function pagesToPdf(canvases) {
+  const enc = new TextEncoder(); const parts = []; let len = 0; const offs = [];
+  const push = (d) => { const b = typeof d === 'string' ? enc.encode(d) : d; parts.push(b); len += b.length; };
+  const jpgs = await Promise.all(canvases.map(cv => new Promise(res => cv.toBlob(b => b.arrayBuffer().then(ab => res(new Uint8Array(ab))), 'image/jpeg', 0.9))));
+  const n = canvases.length, W = 595.28, H = 841.89;
+  const obj = (id, body) => { offs[id] = len; push(`${id} 0 obj\n`); body(); push('\nendobj\n'); };
+  push('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  obj(1, () => push('<< /Type /Catalog /Pages 2 0 R >>'));
+  const kids = []; for (let i = 0; i < n; i++) kids.push(`${3 + i * 3} 0 R`);
+  obj(2, () => push(`<< /Type /Pages /Count ${n} /Kids [${kids.join(' ')}] >>`));
+  for (let i = 0; i < n; i++) {
+    const p = 3 + i * 3, im = p + 1, cs = p + 2, cv = canvases[i];
+    obj(p, () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im${i} ${im} 0 R >> >> /Contents ${cs} 0 R >>`));
+    obj(im, () => { push(`<< /Type /XObject /Subtype /Image /Width ${cv.width} /Height ${cv.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpgs[i].length} >>\nstream\n`); push(jpgs[i]); push('\nendstream'); });
+    const content = `q ${W} 0 0 ${H} 0 0 cm /Im${i} Do Q`;
+    obj(cs, () => push(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`));
   }
-  const doc = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${esc(c.name)}</title><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet"><style>
-    body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#1B1A22;margin:28px;font-size:12pt}h1{font-size:22pt;margin:0}.sub{color:#5E5B66;margin:4px 0 18px}h2{font-size:14pt;margin:22px 0 8px;color:#3F2A75;border-bottom:2px solid #EEE9F8;padding-bottom:4px}
-    table{width:100%;border-collapse:collapse;margin-bottom:8px;page-break-inside:auto}tr{page-break-inside:avoid}th,td{border:1px solid #E4E1D8;padding:6px 8px;text-align:right;font-size:11pt}thead th{background:#F5F4F0}.kv th{width:40%;background:#FAF9F6;font-weight:600}
-    @page{size:A4;margin:14mm}</style></head><body>${html}</body></html>`;
-  const f = document.createElement('iframe');
-  f.style.cssText = 'position:fixed;width:0;height:0;border:0;left:0;bottom:0';
-  document.body.appendChild(f);
-  f.contentDocument.open(); f.contentDocument.write(doc); f.contentDocument.close();
-  const go2 = () => { f.contentWindow.focus(); f.contentWindow.print(); setTimeout(() => f.remove(), 2000); };
-  (f.contentDocument.fonts?.ready || Promise.resolve()).then(() => setTimeout(go2, 400));
+  const total = 3 + n * 3; const xref = len;
+  let x = `xref\n0 ${total}\n0000000000 65535 f \n`;
+  for (let i = 1; i < total; i++) x += String(offs[i]).padStart(10, '0') + ' 00000 n \n';
+  push(x + `trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  const out = new Uint8Array(len); let o = 0; parts.forEach(b => { out.set(b, o); o += b.length; });
+  return out;
+}
+async function exportPdf(full) {
+  try { await Promise.all(['400', '600', '700'].map(w => document.fonts.load(`${w} 16px "IBM Plex Sans Arabic"`))); } catch { }
+  const pages = buildReportPages(full);
+  const bytes = await pagesToPdf(pages);
+  const name = `${S.d.concert.name} - ${full ? 'تقرير داخلي' : 'تقرير مختصر'}.pdf`;
+  offerFile(new File([bytes], name, { type: 'application/pdf' }));
+}
+// iPhone needs the share sheet to be opened from a tap, so the ready file is offered with its own button
+function offerFile(file) {
+  S.ui.fileReady = file; renderLayer();
+}
+async function shareReadyFile() {
+  const f = S.ui.fileReady; if (!f) return;
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: f.name }); S.ui.fileReady = null; renderLayer(); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  const url = URL.createObjectURL(f); const a = document.createElement('a');
+  a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  S.ui.fileReady = null; renderLayer();
 }
 
 /* ================= overlay layer (modals & viewer) ================= */
 function renderLayer() {
   const m = S.ui.modal, v = S.ui.viewer;
+  if (S.ui.fileReady) {
+    const f = S.ui.fileReady, kb = Math.max(1, Math.round(f.size / 1024));
+    layer.innerHTML = `<div class="overlay" role="dialog" aria-modal="true" aria-label="الملف جاهز"><div class="modal" style="max-width:420px;text-align:center;align-items:center">
+      <div class="avatar" style="width:56px;height:56px;background:#EEE9F8;color:#3F2A75;font-size:22px">✓</div>
+      <h2 style="font-size:18px">الملف جاهز</h2><div class="muted" style="word-break:break-word">${esc(f.name)} · ${kb.toLocaleString('en-US')} KB</div>
+      <button class="btn btn-primary" style="width:100%" data-act="file-share">مشاركة / حفظ الملف</button>
+      <button class="btn btn-ghost" style="width:100%" data-act="file-close">إغلاق</button></div></div>`;
+    return;
+  }
   if (v) {
     const z = v.zoom || 1;
     layer.innerHTML = `<div class="overlay" role="dialog" aria-modal="true" aria-label="${esc(v.title)}"><div class="viewer">
@@ -853,7 +1060,9 @@ A['viewer-close'] = () => { S.ui.viewer = null; renderLayer(); };
 A['zoom'] = (el) => { const dz = Number(el.dataset.id); S.ui.viewer.zoom = dz === 0 ? 1 : Math.min(4, Math.max(0.5, (S.ui.viewer.zoom || 1) + dz)); renderLayer(); };
 A['export-open'] = () => { S.ui.exportOpen = true; render(); };
 A['export-close'] = () => { S.ui.exportOpen = false; render(); };
-A['exp'] = (el) => run(async () => { const [kind, fmtx] = el.dataset.id.split('-'); if (fmtx === 'pdf') exportPdf(kind === 'full'); else await exportXlsx(kind === 'full'); });
+A['exp'] = (el) => run(async () => { const [kind, fmtx] = el.dataset.id.split('-'); toast('جاري تجهيز الملف…'); if (fmtx === 'pdf') await exportPdf(kind === 'full'); else await exportXlsx(kind === 'full'); });
+A['file-share'] = () => shareReadyFile();
+A['file-close'] = () => { S.ui.fileReady = null; renderLayer(); };
 
 A['new-concert'] = () => { S.ui.modal = { kind: 'concert' }; renderLayer(); };
 A['edit-concert'] = () => { S.ui.modal = { kind: 'concert', data: S.d.concert }; renderLayer(); };
