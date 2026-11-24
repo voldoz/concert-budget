@@ -120,8 +120,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // Bump APP_VERSION and write APP_NOTES on every release: open copies compare it to show the update banner.
-const APP_VERSION = '2026.11.24-3';
-const APP_NOTES = 'تصدير PDF و Excel يعمل على الجوال بتصميم جديد للتقرير';
+const APP_VERSION = '2026.11.24-4';
+const APP_NOTES = 'معاينة تقرير PDF قبل إرساله أو طباعته';
 const SB_URL = 'https://awkkcmyeaovcuiphlzye.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3a2tjbXllYW92Y3VpcGhsenllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU0MDg4NTAsImV4cCI6MjExMDk4NDg1MH0.1rM1XFyAIcQZ4iCj7K7hdUPlsVyyIcmPma7G1pdhTK8';
 const sb = createClient(SB_URL, SB_KEY);
@@ -988,6 +988,7 @@ async function pagesToPdf(canvases) {
   for (let i = 1; i < total; i++) x += String(offs[i]).padStart(10, '0') + ' 00000 n \n';
   push(x + `trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
   const out = new Uint8Array(len); let o = 0; parts.forEach(b => { out.set(b, o); o += b.length; });
+  out.previews = jpgs.map(j => URL.createObjectURL(new Blob([j], { type: 'image/jpeg' })));
   return out;
 }
 async function exportPdf(full) {
@@ -995,28 +996,38 @@ async function exportPdf(full) {
   const pages = buildReportPages(full);
   const bytes = await pagesToPdf(pages);
   const name = `${S.d.concert.name} - ${full ? 'تقرير داخلي' : 'تقرير مختصر'}.pdf`;
-  offerFile(new File([bytes], name, { type: 'application/pdf' }));
+  offerFile(new File([bytes], name, { type: 'application/pdf' }), bytes.previews);
 }
 // iPhone needs the share sheet to be opened from a tap, so the ready file is offered with its own button
-function offerFile(file) {
-  S.ui.fileReady = file; renderLayer();
+function offerFile(file, previews) {
+  clearPreviews(); S.ui.fileReady = file; S.ui.filePreview = previews || null; renderLayer();
 }
+function clearPreviews() { (S.ui.filePreview || []).forEach(u => URL.revokeObjectURL(u)); S.ui.filePreview = null; }
 async function shareReadyFile() {
   const f = S.ui.fileReady; if (!f) return;
   try {
-    if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: f.name }); S.ui.fileReady = null; renderLayer(); return; }
+    if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: f.name }); return; }
   } catch (e) { if (e && e.name === 'AbortError') return; }
   const url = URL.createObjectURL(f); const a = document.createElement('a');
   a.href = url; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
-  S.ui.fileReady = null; renderLayer();
 }
 
 /* ================= overlay layer (modals & viewer) ================= */
 function renderLayer() {
   const m = S.ui.modal, v = S.ui.viewer;
   if (S.ui.fileReady) {
-    const f = S.ui.fileReady, kb = Math.max(1, Math.round(f.size / 1024));
+    const f = S.ui.fileReady, kb = Math.max(1, Math.round(f.size / 1024)), pv = S.ui.filePreview;
+    if (pv && pv.length) {
+      layer.innerHTML = `<div class="overlay" role="dialog" aria-modal="true" aria-label="معاينة الملف"><div class="viewer" style="max-width:900px">
+        <div class="row between" style="padding:12px 16px;border-bottom:1px solid #E4E1D8">
+          <div style="min-width:0"><div style="font-weight:700;font-size:16px">معاينة قبل الإرسال</div><div class="muted" style="word-break:break-word">${esc(f.name)} · ${pv.length} ${pv.length === 1 ? 'صفحة' : 'صفحات'} · ${kb.toLocaleString('en-US')} KB</div></div>
+          <div class="row" style="gap:8px"><button class="btn btn-primary" data-act="file-share">مشاركة / حفظ / طباعة</button><button class="btn btn-ghost" data-act="file-close">إغلاق</button></div></div>
+        <div style="flex:1;min-height:0;overflow:auto;background:#E9E7E2;padding:16px;display:flex;flex-direction:column;align-items:center;gap:16px">
+          ${pv.map((u, i) => `<figure style="margin:0;width:100%;max-width:794px"><img src="${u}" alt="صفحة ${i + 1}" style="width:100%;display:block;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.15)"><figcaption class="muted" style="text-align:center;margin-top:6px">صفحة ${i + 1} من ${pv.length}</figcaption></figure>`).join('')}
+        </div></div></div>`;
+      return;
+    }
     layer.innerHTML = `<div class="overlay" role="dialog" aria-modal="true" aria-label="الملف جاهز"><div class="modal" style="max-width:420px;text-align:center;align-items:center">
       <div class="avatar" style="width:56px;height:56px;background:#EEE9F8;color:#3F2A75;font-size:22px">✓</div>
       <h2 style="font-size:18px">الملف جاهز</h2><div class="muted" style="word-break:break-word">${esc(f.name)} · ${kb.toLocaleString('en-US')} KB</div>
@@ -1062,7 +1073,7 @@ A['export-open'] = () => { S.ui.exportOpen = true; render(); };
 A['export-close'] = () => { S.ui.exportOpen = false; render(); };
 A['exp'] = (el) => run(async () => { const [kind, fmtx] = el.dataset.id.split('-'); toast('جاري تجهيز الملف…'); if (fmtx === 'pdf') await exportPdf(kind === 'full'); else await exportXlsx(kind === 'full'); });
 A['file-share'] = () => shareReadyFile();
-A['file-close'] = () => { S.ui.fileReady = null; renderLayer(); };
+A['file-close'] = () => { clearPreviews(); S.ui.fileReady = null; renderLayer(); };
 
 A['new-concert'] = () => { S.ui.modal = { kind: 'concert' }; renderLayer(); };
 A['edit-concert'] = () => { S.ui.modal = { kind: 'concert', data: S.d.concert }; renderLayer(); };
@@ -1357,7 +1368,7 @@ FM['invite'] = (form) => run(async () => {
 document.addEventListener('click', (e) => { const el = e.target.closest('[data-act]'); if (!el || el.disabled) return; e.preventDefault(); A[el.dataset.act]?.(el, e); });
 document.addEventListener('change', (e) => { const el = e.target.closest('[data-chg]'); if (!el) return; CH[el.dataset.chg]?.(el, e); });
 document.addEventListener('submit', (e) => { const el = e.target.closest('[data-form]'); if (!el) return; e.preventDefault(); FM[el.dataset.form]?.(el, e); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches?.('input[data-chg]')) { e.preventDefault(); e.target.blur(); return; } if (e.key === 'Escape' && (S.ui.viewer || S.ui.modal)) { S.ui.viewer = null; S.ui.modal = null; renderLayer(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches?.('input[data-chg]')) { e.preventDefault(); e.target.blur(); return; } if (e.key === 'Escape' && (S.ui.viewer || S.ui.modal || S.ui.fileReady)) { S.ui.viewer = null; S.ui.modal = null; clearPreviews(); S.ui.fileReady = null; renderLayer(); } });
 
 /* ================= boot ================= */
 async function boot() {
